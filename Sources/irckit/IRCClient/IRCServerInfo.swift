@@ -15,28 +15,28 @@
 import Foundation
 
 public struct IRCServerInfo {
-    var serverName: String?
-    var serverVersion: String?
-    var networkName: String?
+    public internal(set) var serverName: String?
+    public internal(set) var serverVersion: String?
+    public internal(set) var networkName: String?
     
-    var supportedUserModes: [IRCUserMode]?
-    var supportedChannelModes: [IRCChannelMode]?
-    var prefixMapping: [IRCChannelUserMode: Character] = [:]
-    var caseMapping: String?
-    var supportedChannelTypes: [IRCChannelType]?
-    var supportedIRCv3Capabilities: [IRCv3Capability] = []
-    var enabledIRCv3Capabilities: [IRCv3Capability] = []
-    var supportedSASLMechanisms: [SASLMechanism] = []
-    var supportsExtendedWhoQuery = false
+    public internal(set) var supportedUserModes: [IRCUserMode]?
+    public internal(set) var supportedChannelModes: [IRCChannelMode]?
+    public internal(set) var prefixMapping: [IRCChannelUserMode: Character] = [:]
+    public internal(set) var caseMapping: String?
+    public internal(set) var supportedChannelTypes: [IRCChannelType]?
+    public internal(set) var supportedIRCv3Capabilities: [IRCv3Capability] = []
+    public internal(set) var enabledIRCv3Capabilities: [IRCv3Capability] = []
+    public internal(set) var supportedSASLMechanisms: [SASLMechanism] = []
+    public internal(set) var supportsExtendedWhoQuery = false
     
-    var maximumAwayMessageLength: Int?
-    var maximumChannelNameLength: Int?
-    var maximumQuitMessageLength: Int?
-    var maximumKickMessageLength: Int?
-    var maximumNicknameLength: Int?
-    var maximumTopicLength: Int?
+    public internal(set) var maximumAwayMessageLength: Int?
+    public internal(set) var maximumChannelNameLength: Int?
+    public internal(set) var maximumQuitMessageLength: Int?
+    public internal(set) var maximumKickMessageLength: Int?
+    public internal(set) var maximumNicknameLength: Int?
+    public internal(set) var maximumTopicLength: Int?
     
-    mutating func setServerInfo (parameters: [String]) {
+    internal mutating func setServerInfo (parameters: [String]) {
         self.serverName = parameters[1]
         self.serverVersion = parameters[2]
         
@@ -46,7 +46,7 @@ public struct IRCServerInfo {
         self.supportedChannelModes = IRCChannelMode.modeList(fromString: channelModeString)
     }
     
-    mutating func setSupported (parameters: [String]) {
+    internal mutating func setSupported (parameters: [String]) {
         var supportEntries = parameters
         supportEntries.removeFirst()
         supportEntries.removeLast()
@@ -109,7 +109,7 @@ public struct IRCServerInfo {
     }
 }
 
-enum IRCUserMode: Character {
+public enum IRCUserMode: Character {
     case isBot = "B"
     case filterPrivateMessagesByPrefix = "d"
     case filterPrivateMessagesRegOnly = "R"
@@ -130,7 +130,7 @@ enum IRCUserMode: Character {
     case hasCloakedHostname = "x"
     case connectedViaSSL = "z"
     
-    static func modeList (fromString userModeString: String) -> [IRCUserMode] {
+    internal static func modeList (fromString userModeString: String) -> [IRCUserMode] {
         return Array(userModeString).compactMap({
             return IRCUserMode(rawValue: $0)
         })
@@ -166,7 +166,7 @@ public enum IRCChannelMode: Character {
     case sslConnectionRequired = "z"
     case channelOnlyHasSecureMembers = "Z"
     
-    static func modeList (fromString channelModeString: String) -> [IRCChannelMode] {
+    internal static func modeList (fromString channelModeString: String) -> [IRCChannelMode] {
         return Array(channelModeString).compactMap({
             return IRCChannelMode(rawValue: $0)
         })
@@ -189,7 +189,7 @@ public enum IRCv3Capability: String {
     case batchMessageProcessing = "batch"
     case labeledResponses = "labeled-response"
     
-    static func list (fromString capString: String) -> [IRCv3Capability] {
+    internal static func list (fromString capString: String) -> [IRCv3Capability] {
         let availableCapabilities = capString.components(separatedBy: .whitespaces)
         return availableCapabilities.compactMap({
             capItemString in
@@ -200,7 +200,7 @@ public enum IRCv3Capability: String {
         })
     }
     
-    static func map (fromString capString: String) -> [IRCv3Capability:[String]?] {
+    internal static func map (fromString capString: String) -> [IRCv3Capability:[String]?] {
         let availableCapabilities = capString.components(separatedBy: .whitespaces)
         return availableCapabilities.reduce([:], { (acc: [IRCv3Capability: [String]?], capItemString: String) -> [IRCv3Capability: [String]?] in
             var acc = acc
@@ -225,7 +225,7 @@ public enum SASLMechanism: String {
     case sha256 = "SCRAM-SHA-256"
 }
 
-enum IRCChannelType {
+public enum IRCChannelType {
     
 }
 
