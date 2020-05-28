@@ -14,6 +14,13 @@
 
 import Foundation
 
+public struct IRCChannelEvent {
+    public let user: IRCUser
+    public let channel: IRCChannel
+    public let message: String?
+    public let raw: IRCMessage
+}
+
 extension IRCClient {
     func handleJoinChannelEvent (message: IRCMessage) {
         guard let sender = message.sender, let username = sender.username, let hostmask = sender.hostmask else {
@@ -147,4 +154,47 @@ extension IRCClient {
         ))
         NotificationCenter.default.post(notification)
     }
+}
+
+public struct IRCUserJoinedChannelNotification: NotificationDescriptor {
+    public init () {}
+
+    public typealias Payload = IRCChannelEvent
+    public let name = Notification.Name("IRCDidJoinChannel")
+}
+
+public struct IRCUserLeftChannelNotification: NotificationDescriptor {
+    public init () {}
+
+    public typealias Payload = IRCChannelEvent
+    public let name = Notification.Name("IRCDidLeaveChannel")
+}
+
+public struct IRCChannelTopicChangeNotification: NotificationDescriptor {
+    public init () {}
+    
+    public struct IRCChannelTopicChange {
+        public let user: IRCUser?
+        public let channel: IRCChannel
+        public let contents: String
+        public let raw: IRCMessage
+    }
+
+    public typealias Payload = IRCChannelTopicChange
+    public let name = Notification.Name("IRCDidChangeChannelTopic")
+}
+
+public struct IRCChannelKickNotification: NotificationDescriptor {
+    public init () {}
+    
+    public struct IRCChannelKick {
+        public let sender: IRCSender
+        public let channel: IRCChannel
+        public let kickedUser: IRCUser
+        public let message: String?
+        public let raw: IRCMessage
+    }
+
+    public typealias Payload = IRCChannelKick
+    public let name = Notification.Name("IRCDidKickFromChannel")
 }

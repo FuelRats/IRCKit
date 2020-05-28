@@ -94,3 +94,27 @@ extension IRCClient {
         }
     }
 }
+
+public struct IRCChannelNoticeNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCChannelDidReceiveNotice")
+}
+
+public struct IRCChannelCTCPReplyNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCChannelDidReceiveCTCPReply")
+}
+
+public struct IRCPrivateNoticeNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCDidReceivePrivateNotice")
+}
+
+public struct IRCPrivateCTCPReplyNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCDidReceivePrivateCTCPReply")
+}

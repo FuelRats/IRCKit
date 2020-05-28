@@ -40,3 +40,22 @@ extension IRCClient {
         }
     }
 }
+
+public struct IRCUserQuitNotification: NotificationDescriptor {
+    public init () {}
+
+    public typealias Payload = IRCMessage
+    public let name = Notification.Name("IRCDidQuitServer")
+}
+
+public struct IRCUserChangedNickNotification: NotificationDescriptor {
+    public init () {}
+    
+    public struct IRCNickChange {
+        public let message: IRCMessage
+        public let newNick: String
+    }
+
+    public typealias Payload = IRCNickChange
+    public let name = Notification.Name("IRCDidChangeNick")
+}

@@ -14,6 +14,42 @@
 
 import Foundation
 
+public struct IRCPrivateMessage {
+    public let client: IRCClient
+    public let destination: IRCChannel
+    public let user: IRCUser
+    public let message: String
+    public let raw: IRCMessage
+    
+    public func reply (message: String) {
+        client.sendMessage(toChannel: destination, contents: message)
+    }
+    
+    public func reply (list: [String], separator: String, heading: String = "") {
+        let messages = list.reduce([String](), { (acc: [String], entry: String) -> [String] in
+            var acc = acc
+            var entry = entry
+            
+            if acc.last == nil {
+                entry = heading + entry
+            }
+            
+            if acc.last == nil || acc.last!.count + separator.count + list.count > 400 {
+                acc.append(entry)
+                return acc
+            }
+            
+            acc[acc.count - 1] = acc[acc.count - 1] + separator + entry
+            return acc
+        })
+        
+        for message in messages {
+            self.reply(message: message)
+        }
+    }
+}
+
+
 extension IRCClient {
     func handlePrivmsgEvent (message: IRCMessage) {
         if message.sender?.nickname == self.currentNick {
@@ -124,4 +160,40 @@ extension IRCClient {
             NotificationCenter.default.post(notification)
         }
     }
+}
+
+public struct IRCChannelMessageNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCChannelDidReceiveMessage")
+}
+
+public struct IRCChannelActionMessageNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCChannelDidReceiveActionMessage")
+}
+
+public struct IRCChannelCTCPRequestNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCChannelDidReceiveCTCPRequest")
+}
+
+public struct IRCPrivateMessageNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCDidReceivePrivateMessage")
+}
+
+public struct IRCPrivateActionMessageNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCDidReceivePrivateActionMessage")
+}
+
+public struct IRCPrivateCTCPRequestNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCDidReceivePrivateCTCPRequest")
 }

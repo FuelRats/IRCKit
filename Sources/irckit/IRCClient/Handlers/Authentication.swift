@@ -64,3 +64,14 @@ extension IRCClient {
         
     }
 }
+
+public struct IRCUserAccountChangeNotification: NotificationDescriptor {
+    public init () {}
+    public struct IRCUserAccountChange {
+        public let user: IRCUser
+        public let oldValue: String?
+    }
+    
+    public typealias Payload = IRCUserAccountChange
+    public let name = Notification.Name("IRCUserAccountDidChange")
+}
