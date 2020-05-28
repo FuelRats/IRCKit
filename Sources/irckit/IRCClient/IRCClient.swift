@@ -128,6 +128,10 @@ open class IRCClient: IRCConnectionDelegate {
                 handleNickChangeServerEvent(message: message)
                 break
             
+            case .AWAY:
+                handleAwayChangeEvent(message: message)
+                break
+            
             case .ACCOUNT:
                 handleAccountChangeServerEvent(message: message)
                 break

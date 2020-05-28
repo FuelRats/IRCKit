@@ -35,7 +35,20 @@ extension IRCClient {
         for channel in self.channels {
             if let member = channel.member(fromSender: sender) {
                 member.nickname = newNick
-                channel.set(nickname: sender.nickname, member: member)
+            }
+        }
+    }
+    
+    func handleAwayChangeEvent (message: IRCMessage) {
+        guard let sender = message.sender else {
+            return
+        }
+        
+        let isAway = message.parameters.count > 0
+        
+        for channel in self.channels {
+            if let member = channel.member(fromSender: sender) {
+                member.isAway = isAway
             }
         }
     }

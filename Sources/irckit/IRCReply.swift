@@ -20,6 +20,7 @@ public enum IRCReply: String {
     case CAP
     case JOIN
     case NICK
+    case AWAY
     case PART
     case QUIT
     case PRIVMSG
