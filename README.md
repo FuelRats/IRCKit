@@ -15,13 +15,14 @@ IRCKit is an asynchronous pure Swift modern IRC library using the Apple NIO even
 * Server-sent timestamps ([server-time](https://ircv3.net/specs/extensions/server-time-3.2))
 * Capability change notifications ([cap-notify](https://ircv3.net/specs/core/capability-negotiation#cap-notify))
 
+
 ### Partially Implemented:
 * Labeled responses ([labeled-response](https://ircv3.net/specs/extensions/labeled-response))
 * Unique message identifiers ([message-ids](https://ircv3.net/specs/extensions/message-ids))
 * Message confirmations ([echo-message](https://ircv3.net/specs/extensions/echo-message-3.2))
    
    
-   ###  To be implemented: 
+###  To be implemented: 
 * Away notifications ([away-notify](https://ircv3.net/specs/extensions/away-notify-3.1))
 * Message batching ([batch](https://ircv3.net/specs/extensions/batch-3.2))
 * Message replies ([client-tags/reply](https://ircv3.net/specs/client-tags/reply))
