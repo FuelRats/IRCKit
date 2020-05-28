@@ -84,8 +84,8 @@ open class IRCClient: IRCConnectionDelegate {
                 handleNameReply(message: message)
                 break
             
-            case .RPL_WHOSPCRPL:
-                handleExtendedWhoReply(message: message)
+            case .RPL_WHORELY, .RPL_WHOSPCRPL:
+                handleWhoReply(message: message)
                 break
             
             case .RPL_TOPIC, .RPL_NOTOPIC, .RPL_TOPICWHOTIME:

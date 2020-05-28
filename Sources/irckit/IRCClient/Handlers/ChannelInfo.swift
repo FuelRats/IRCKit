@@ -52,20 +52,45 @@ extension IRCClient {
         }
     }
     
-    func handleExtendedWhoReply (message: IRCMessage) {
+    
+    // Standard WHO: <recipient> <channel> <username> <host> <server> <nick> <modes> <realname>
+    // Extended WHO: <recipient> <channel> <username> <host> <server> <nick> <modes> <account> <realname>
+    func handleWhoReply (message: IRCMessage) {
+        guard message.parameters.count > 7 else {
+            return
+        }
+        
+        
         let channelName = message.parameters[1]
         guard let channel = self.getChannel(named: channelName) else {
             return
         }
         
-        let nickname = message.parameters[4]
-        let account = message.parameters[5] == "0" ? nil : message.parameters[5]
+        let nickname = message.parameters[5]
         
         guard let user = channel.member(named: nickname) else {
             return
         }
         
-        user.account = account
+        user.username = message.parameters[2]
+        user.hostmask = message.parameters[3]
+        user.connectedServer = message.parameters[4]
+        
+        let modes = message.parameters[6]
+        
+        user.isAway = modes.contains("G")
+        user.isIRCOperator = modes.contains("*") || modes.contains("!")
+        user.isSecure = modes.contains("s")
+        
+        var realNameIndex = 8
+        if message.parameters.count > 8 {
+            let account = message.parameters[7] == "0" ? nil : message.parameters[5]
+            user.account = account
+            
+            realNameIndex = 9
+        }
+        
+        user.realName = message.parameters[realNameIndex]
         channel.set(member: user)
     }
     

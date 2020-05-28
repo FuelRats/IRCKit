@@ -53,7 +53,9 @@ extension IRCClient {
             self.send(command: .MODE, parameters: channel.name)
             
             if self.serverInfo.supportsExtendedWhoQuery {
-                self.send(command: .WHO, parameters: channel.name, "+%cnauhr")
+                self.send(command: .WHO, parameters: channel.name, "+%cnauhrfs")
+            } else {
+                self.send(command: .WHO, parameters: channel.name)
             }
             
             let notification = IRCUserJoinedChannelNotification().encode(payload: IRCChannelEvent(
