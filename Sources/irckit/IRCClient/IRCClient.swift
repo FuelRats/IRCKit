@@ -92,6 +92,14 @@ open class IRCClient: IRCConnectionDelegate {
                 handleTopicInformation(message: message)
                 break
             
+            case .RPL_CHANNELMODEIS:
+                handleChannelModeInformation(message: message)
+                break
+            
+            case .RPL_CREATIONTIME:
+                handleChannelCreatedInformation(message: message)
+                break
+            
             case .CAP:
                 handleIRCv3CapabilityReply(message: message)
                 break
@@ -218,7 +226,9 @@ open class IRCClient: IRCConnectionDelegate {
         self.channels.removeAll(where: { $0.name == channelName })
     }
     
-    
+    public func send (command: IRCCommand, parameters: String...) {
+        self.send(command: command, parameters: parameters)
+    }
     
     public func send (command: IRCCommand, parameters: [String], tags: [String: String?] = [:]) {
         var params = parameters

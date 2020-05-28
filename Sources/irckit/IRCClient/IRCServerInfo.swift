@@ -137,7 +137,7 @@ public enum IRCUserMode: Character {
     }
 }
 
-public enum IRCChannelMode: Character {
+public enum IRCChannelMode: Character, Hashable {
     case noColorAllowed = "c"
     case noCTCPAllowed = "C"
     case delayJoinUntilMessage = "D"
@@ -170,6 +170,34 @@ public enum IRCChannelMode: Character {
         return Array(channelModeString).compactMap({
             return IRCChannelMode(rawValue: $0)
         })
+    }
+    
+    internal static func modeMap (fromString channelModeString: String) -> [IRCChannelMode: String?] {
+        var modeMap: [IRCChannelMode: String?] = [:]
+        var modeArgs = channelModeString.components(separatedBy: " ")
+        let modes = modeArgs[0]
+        modeArgs.removeFirst()
+        
+        for modeChar in Array(modes) {
+            guard let mode = IRCChannelMode(rawValue: modeChar) else {
+                continue
+            }
+            
+            switch mode {
+                case .floodProtection,
+                     .playsChannelHistory,
+                     .requiresPassword,
+                     .limitUserCount:
+                    modeMap[mode] = modeArgs.first
+                    modeArgs.removeFirst()
+                    break
+                
+                default:
+                    modeMap[mode] = nil
+            }
+        }
+        
+        return modeMap
     }
 }
 

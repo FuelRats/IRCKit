@@ -98,4 +98,26 @@ extension IRCClient {
                 break
         }
     }
+    
+    func handleChannelModeInformation (message: IRCMessage) {
+        let channelName = message.parameters[1]
+        guard let channel = self.getChannel(named: channelName) else {
+            return
+        }
+        
+        channel.channelModes = IRCChannelMode.modeMap(fromString: message.parameters[2])
+    }
+    
+    func handleChannelCreatedInformation (message: IRCMessage) {
+        let channelName = message.parameters[1]
+        guard let channel = self.getChannel(named: channelName) else {
+            return
+        }
+        
+        guard let date = DateFormatter.iso8601Full.date(from: message.parameters[2]) else {
+            return
+        }
+        
+        channel.createdAt = date
+    }
 }
