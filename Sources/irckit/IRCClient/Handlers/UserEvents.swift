@@ -52,6 +52,20 @@ extension IRCClient {
             }
         }
     }
+    
+    func handleRealNameChange (message: IRCMessage) {
+        guard let sender = message.sender else {
+            return
+        }
+        
+        let realName = message.parameters[0]
+        
+        for channel in self.channels {
+            if let member = channel.member(fromSender: sender) {
+                member.realName = realName
+            }
+        }
+    }
 }
 
 public struct IRCUserQuitNotification: NotificationDescriptor {

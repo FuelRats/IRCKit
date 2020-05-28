@@ -15,6 +15,7 @@ IRCKit is an asynchronous pure Swift modern IRC library using the Apple NIO even
 * Server-sent timestamps ([server-time](https://ircv3.net/specs/extensions/server-time-3.2))
 * Capability change notifications ([cap-notify](https://ircv3.net/specs/core/capability-negotiation#cap-notify))
 * Away notifications ([away-notify](https://ircv3.net/specs/extensions/away-notify-3.1))
+* Changing real name after connection ([setname](https://ircv3.net/specs/extensions/setname))
 
 
 ### Partially Implemented:
@@ -32,7 +33,6 @@ IRCKit is an asynchronous pure Swift modern IRC library using the Apple NIO even
 * User monitoring ([monitor](https://ircv3.net/specs/core/monitor-3.2))
 * SASL ([SCRAM-SHA-256](https://tools.ietf.org/html/rfc7677))
 * Server Name Indication ([SNI](https://ircv3.net/specs/core/sni-3.3))
-* Changing real name after connection ([setname](https://ircv3.net/specs/extensions/setname))
 * Standardised notifications, warnings and errors ([standard-replies](https://ircv3.net/specs/extensions/standard-replies))
 * Strict Transport Security ([STS](https://ircv3.net/specs/extensions/sts))
 * ZNC Playback  module ([playback](https://wiki.znc.in/Playback))

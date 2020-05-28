@@ -132,6 +132,10 @@ open class IRCClient: IRCConnectionDelegate {
                 handleAwayChangeEvent(message: message)
                 break
             
+            case .SETNAME:
+                handleRealNameChange(message: message)
+                break
+            
             case .ACCOUNT:
                 handleAccountChangeServerEvent(message: message)
                 break

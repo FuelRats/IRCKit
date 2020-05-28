@@ -32,4 +32,5 @@ public enum IRCCommand: String {
     case MODE
     case TOPIC
     case WHO
+    case SETNAME
 }

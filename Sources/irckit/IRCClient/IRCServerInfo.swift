@@ -35,6 +35,7 @@ public struct IRCServerInfo {
     public internal(set) var maximumKickMessageLength: Int?
     public internal(set) var maximumNicknameLength: Int?
     public internal(set) var maximumTopicLength: Int?
+    public internal(set) var maximumRealNameLength: Int?
     
     internal mutating func setServerInfo (parameters: [String]) {
         self.serverName = parameters[1]
@@ -100,6 +101,10 @@ public struct IRCServerInfo {
                 
                 case let ("TOPICLEN", value) where Int(value ?? "") != nil:
                     self.maximumTopicLength = Int(value ?? "")
+                    break
+                
+                case let ("NAMELEN", value) where Int(value ?? "") != nil:
+                    self.maximumRealNameLength = Int(value ?? "")
                     break
                 
                 default:
@@ -216,6 +221,7 @@ public enum IRCv3Capability: String {
     case messageConfirmation = "echo-message"
     case batchMessageProcessing = "batch"
     case labeledResponses = "labeled-response"
+    case changeRealName = "setname"
     
     internal static func list (fromString capString: String) -> [IRCv3Capability] {
         let availableCapabilities = capString.components(separatedBy: .whitespaces)
