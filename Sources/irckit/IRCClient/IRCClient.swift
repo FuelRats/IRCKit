@@ -137,6 +137,7 @@ open class IRCClient: IRCConnectionDelegate {
                 break
             
             case .NOTICE:
+                handleNoticeEvent(message: message)
                 break
             
             case .KICK:

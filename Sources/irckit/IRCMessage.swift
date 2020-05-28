@@ -86,6 +86,16 @@ public struct IRCMessage {
         }
     }
     
+    public var isCTCPReply: Bool {
+        get {
+            guard self.parameters.count > 1 else {
+                return false
+            }
+            
+            return self.command == .NOTICE && self.parameters[1].starts(with: "\u{001}") && self.parameters[1].hasSuffix("\u{001}")
+        }
+    }
+    
     public var isActionMessage: Bool {
         get {
             guard self.isCTCPRequest == true else {
