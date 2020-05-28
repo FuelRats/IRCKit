@@ -71,6 +71,31 @@ extension IRCClient {
     
     
     func handleTopicInformation (message: IRCMessage) {
+        let channelName = message.parameters[1]
+        guard let channel = self.getChannel(named: channelName) else {
+            return
+        }
         
+        switch (message.command) {
+            case .RPL_TOPIC:
+                channel.topic = IRCChannel.Topic(contents: message.parameters[2], author: nil, date: nil)
+                break
+            
+            case .RPL_TOPICWHOTIME:
+                guard let date = DateFormatter.iso8601Full.date(from: message.parameters[3]) else {
+                    return
+                }
+                
+                channel.topic?.author = message.parameters[2]
+                channel.topic?.date = date
+                break
+            
+            case .RPL_NOTOPIC:
+                channel.topic = nil
+                break
+            
+            default:
+                break
+        }
     }
 }

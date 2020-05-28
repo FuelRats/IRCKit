@@ -15,10 +15,16 @@
 import Foundation
 
 public class IRCChannel {
+    public struct Topic {
+        public internal(set) var contents: String
+        public internal(set) var author: String?
+        public internal(set) var date: Date?
+    }
+    
     let client: IRCClient
     public let name: String
     public internal(set) var channelModes: [IRCChannelMode]
-    public internal(set) var topic: String?
+    public internal(set) var topic: Topic?
     public internal(set) var members: [IRCUser]
     var isExpectingWhoUpdate: Bool = false
     public let isPrivateMessage: Bool

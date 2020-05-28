@@ -133,7 +133,7 @@ extension IRCClient {
         guard let channel = self.getChannel(named: message.parameters[0]) else {
             return
         }
-        channel.topic = message.parameters[1]
+        channel.topic = IRCChannel.Topic(contents: message.parameters[1], author: sender.nickname, date: message.time)
         
         let user = channel.member(fromSender: sender)
         
