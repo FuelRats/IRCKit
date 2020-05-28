@@ -19,6 +19,7 @@ public struct IRCPrivateMessage {
     public let destination: IRCChannel
     public let user: IRCUser
     public let message: String
+    public let raw: IRCMessage
     
     public func reply (message: String) {
         client.sendMessage(toChannel: destination, contents: message)
@@ -46,6 +47,13 @@ public struct IRCPrivateMessage {
             self.reply(message: message)
         }
     }
+}
+
+public struct IRCChannelEvent {
+    public let user: IRCUser
+    public let channel: IRCChannel
+    public let message: String?
+    public let raw: IRCMessage
 }
 
 public struct IRCUserAccountChangeNotification: NotificationDescriptor {
@@ -107,15 +115,45 @@ public struct IRCPrivateCTCPRequestNotification: NotificationDescriptor {
 
 public struct IRCUserJoinedChannelNotification: NotificationDescriptor {
     public init () {}
+
+    public typealias Payload = IRCChannelEvent
+    public let name = Notification.Name("IRCDidJoinChannel")
+}
+
+public struct IRCUserLeftChannelNotification: NotificationDescriptor {
+    public init () {}
+
+    public typealias Payload = IRCChannelEvent
+    public let name = Notification.Name("IRCDidLeaveChannel")
+}
+
+public struct IRCChannelTopicChangeNotification: NotificationDescriptor {
+    public init () {}
     
-    public struct IRCUserJoin {
-        public let user: IRCUser
+    public struct IRCChannelTopicChange {
+        public let user: IRCUser?
         public let channel: IRCChannel
-        public let message: IRCMessage
+        public let contents: String
+        public let raw: IRCMessage
     }
 
-    public typealias Payload = IRCUserJoin
-    public let name = Notification.Name("IRCDidJoinChannel")
+    public typealias Payload = IRCChannelTopicChange
+    public let name = Notification.Name("IRCDidChangeChannelTopic")
+}
+
+public struct IRCChannelKickNotification: NotificationDescriptor {
+    public init () {}
+    
+    public struct IRCChannelKick {
+        public let sender: IRCSender
+        public let channel: IRCChannel
+        public let kickedUser: IRCUser
+        public let message: String?
+        public let raw: IRCMessage
+    }
+
+    public typealias Payload = IRCChannelKick
+    public let name = Notification.Name("IRCDidKickFromChannel")
 }
 
 public struct IRCUserQuitNotification: NotificationDescriptor {

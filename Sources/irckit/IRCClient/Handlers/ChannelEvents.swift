@@ -75,11 +75,74 @@ extension IRCClient {
             return
         }
         
-        let channel = self.getChannel(named: message.parameters[0])
-        channel?.remove(sender: sender)
+        guard let channel = self.getChannel(named: message.parameters[0]) else {
+            return
+        }
+        guard let user = channel.member(fromSender: sender) else {
+            return
+        }
+        channel.remove(member: user)
         
         if sender.isCurrentUser(client: self) {
             self.removeChannel(named: message.parameters[0])
         }
+        
+        let notification = IRCUserLeftChannelNotification().encode(payload: IRCChannelEvent(
+            user: user,
+            channel: channel,
+            message: message.parameters[1],
+            raw: message
+        ))
+        NotificationCenter.default.post(notification)
+    }
+    
+    func handleChannelKickEvent (message: IRCMessage) {
+        guard let sender = message.sender else {
+            return
+        }
+        
+        guard let channel = self.getChannel(named: message.parameters[0]) else {
+            return
+        }
+        
+        guard let kickUser = channel.member(named: message.parameters[1]) else {
+            return
+        }
+        
+        channel.remove(member: kickUser)
+        
+        if sender.isCurrentUser(client: self) {
+            self.removeChannel(named: message.parameters[0])
+        }
+        
+        let notification = IRCChannelKickNotification().encode(payload: IRCChannelKickNotification.IRCChannelKick(
+            sender: sender,
+            channel: channel,
+            kickedUser: kickUser,
+            message: message.parameters[2],
+            raw: message
+        ))
+        NotificationCenter.default.post(notification)
+    }
+    
+    func handleChannelTopicEvent (message: IRCMessage) {
+        guard let sender = message.sender else {
+            return
+        }
+        
+        guard let channel = self.getChannel(named: message.parameters[0]) else {
+            return
+        }
+        channel.topic = message.parameters[1]
+        
+        let user = channel.member(fromSender: sender)
+        
+        let notification = IRCChannelTopicChangeNotification().encode(payload: IRCChannelTopicChangeNotification.IRCChannelTopicChange(
+            user: user,
+            channel: channel,
+            contents: message.parameters[1],
+            raw: message
+        ))
+        NotificationCenter.default.post(notification)
     }
 }

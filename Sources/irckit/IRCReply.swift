@@ -17,14 +17,18 @@ import Foundation
 public enum IRCReply: String {
     case PING
     case ERROR
-    case NOTICE
     case CAP
     case JOIN
     case NICK
     case PART
     case QUIT
     case PRIVMSG
+    case NOTICE
     case ACCOUNT
+    case INVITE
+    case KICK
+    case MODE
+    case TOPIC
     case AUTHENTICATE
     
     case RPL_WELCOME = "001"

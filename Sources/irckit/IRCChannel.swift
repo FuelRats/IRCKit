@@ -17,8 +17,9 @@ import Foundation
 public class IRCChannel {
     let client: IRCClient
     public let name: String
-    public private(set) var channelModes: [IRCChannelMode]
-    public private(set) var members: [IRCUser]
+    public internal(set) var channelModes: [IRCChannelMode]
+    public internal(set) var topic: String?
+    public internal(set) var members: [IRCUser]
     var isExpectingWhoUpdate: Bool = false
     public let isPrivateMessage: Bool
     

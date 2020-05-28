@@ -68,4 +68,9 @@ extension IRCClient {
         user.account = account
         channel.set(member: user)
     }
+    
+    
+    func handleTopicInformation (message: IRCMessage) {
+        
+    }
 }

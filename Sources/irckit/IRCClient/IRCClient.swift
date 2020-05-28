@@ -88,6 +88,10 @@ open class IRCClient: IRCConnectionDelegate {
                 handleExtendedWhoReply(message: message)
                 break
             
+            case .RPL_TOPIC, .RPL_NOTOPIC, .RPL_TOPICWHOTIME:
+                handleTopicInformation(message: message)
+                break
+            
             case .CAP:
                 handleIRCv3CapabilityReply(message: message)
                 break
@@ -122,6 +126,20 @@ open class IRCClient: IRCConnectionDelegate {
             
             case .PRIVMSG:
                 handlePrivmsgEvent(message: message)
+                break
+            
+            case .NOTICE:
+                break
+            
+            case .KICK:
+                handleChannelKickEvent(message: message)
+                break
+            
+            case .MODE:
+                break
+            
+            case .TOPIC:
+                handleChannelTopicEvent(message: message)
                 break
             
             default:

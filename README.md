@@ -1,5 +1,5 @@
 # IRCKit
-IRCKit is an asynchronous pure Swift modern IRC library using the Apple NIO event driven networking framework written to support the latest of IRCv3 features.
+IRCKit is an asynchronous pure Swift modern IRC library using the Apple NIO event driven networking framework and the Foundation NotificationCenter API written to support the latest of IRCv3 features.
 
 ### Currently Supported:
 * WHOX

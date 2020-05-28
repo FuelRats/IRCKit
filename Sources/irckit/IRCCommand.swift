@@ -22,9 +22,14 @@ public enum IRCCommand: String {
     case JOIN
     case QUIT
     case PART
-    case NOTICE
     case CAP
     case AUTHENTICATE
     case PRIVMSG
+    case NOTICE
+    case ISON
+    case INVITE
+    case KICK
+    case MODE
+    case TOPIC
     case WHO
 }
