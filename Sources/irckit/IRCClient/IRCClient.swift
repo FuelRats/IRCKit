@@ -152,6 +152,10 @@ open class IRCClient: IRCConnectionDelegate {
                 handleChannelKickEvent(message: message)
                 break
             
+            case .INVITE:
+                handleChannelKickEvent(message: message)
+                break
+            
             case .MODE:
                 handleChannelModeChangeEvent(message: message)
                 break

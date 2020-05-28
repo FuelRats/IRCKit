@@ -136,6 +136,24 @@ extension IRCClient {
         NotificationCenter.default.post(notification)
     }
     
+    func handleChannelInviteEvent (message: IRCMessage) {
+        guard let sender = message.sender else {
+            return
+        }
+        
+        guard let channel = self.getChannel(named: message.parameters[0]) else {
+            return
+        }
+        
+        let notification = IRCChannelInviteNotification().encode(payload: IRCChannelInviteNotification.IRCChannelInvite(
+            sender: sender,
+            channel: channel,
+            invitedNick: message.parameters[1],
+            raw: message
+        ))
+        NotificationCenter.default.post(notification)
+    }
+    
     func handleChannelTopicEvent (message: IRCMessage) {
         guard let sender = message.sender else {
             return
@@ -220,6 +238,7 @@ public struct IRCUserJoinedChannelNotification: NotificationDescriptor {
     public let name = Notification.Name("IRCDidJoinChannel")
 }
 
+
 public struct IRCUserLeftChannelNotification: NotificationDescriptor {
     public init () {}
 
@@ -254,4 +273,18 @@ public struct IRCChannelKickNotification: NotificationDescriptor {
 
     public typealias Payload = IRCChannelKick
     public let name = Notification.Name("IRCDidKickFromChannel")
+}
+
+public struct IRCChannelInviteNotification: NotificationDescriptor {
+    public init () {}
+    
+    public struct IRCChannelInvite {
+        public let sender: IRCSender
+        public let channel: IRCChannel
+        public let invitedNick: String
+        public let raw: IRCMessage
+    }
+
+    public typealias Payload = IRCChannelInvite
+    public let name = Notification.Name("IRCDidInviteToChannel")
 }

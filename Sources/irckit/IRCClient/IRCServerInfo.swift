@@ -214,6 +214,7 @@ public enum IRCv3Capability: String {
     case multiplePrefixes = "multi-prefix"
     case awayNotification = "away-notify"
     case accountChangeNotification = "account-notify"
+    case channelInviteNotification = "invite-notify"
     case sasl = "sasl"
     case messageTags = "message-tags"
     case accountTagInMessage = "account-tag"
