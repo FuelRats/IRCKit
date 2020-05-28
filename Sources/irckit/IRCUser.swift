@@ -28,11 +28,11 @@ public class IRCUser {
         }
     }
     
-    public var isAway = false
-    public var isIRCOperator = false
-    public var lastMessage: String?
+    public internal(set) var isAway = false
+    public internal(set) var isIRCOperator = false
+    public internal(set) var lastMessage: String?
     
-    public var channelUserModes: [IRCChannelUserMode] = []
+    public internal(set) var channelUserModes: Set<IRCChannelUserMode> = []
     
     init (onClient client: IRCClient, nickname: String, username: String, hostmask: String, realName: String?, account: String?) {
         self.client = client

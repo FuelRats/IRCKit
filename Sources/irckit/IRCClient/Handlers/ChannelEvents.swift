@@ -154,6 +154,61 @@ extension IRCClient {
         ))
         NotificationCenter.default.post(notification)
     }
+    
+    func handleChannelModeChangeEvent (message: IRCMessage) {
+        guard let channel = self.getChannel(named: message.parameters[0]) else {
+            return
+        }
+        
+        let modes = message.parameters[1]
+        var modeArgs = message.parameters[2...]
+        var revoking = false
+        
+        for modeChar in Array(modes) {
+            if modeChar == "+" {
+                revoking = false
+                continue
+            }
+            
+            if modeChar == "-" {
+                revoking = true
+                continue
+            }
+            
+            if let userMode = IRCChannelUserMode(rawValue: modeChar) {
+                guard let memberName = modeArgs.first, let member = channel.member(named: memberName) else {
+                    continue
+                }
+                if revoking {
+                    member.channelUserModes.remove(userMode)
+                } else {
+                    member.channelUserModes.insert(userMode)
+                }
+                modeArgs.removeFirst()
+                continue
+            }
+            
+            if let channelMode = IRCChannelMode(rawValue: modeChar) {
+                if revoking {
+                    channel.channelModes.removeValue(forKey: channelMode)
+                    continue
+                }
+                switch channelMode {
+                    case .floodProtection,
+                         .playsChannelHistory,
+                         .requiresPassword,
+                         .limitUserCount:
+                        channel.channelModes[channelMode] = modeArgs.first
+                        modeArgs.removeFirst()
+                        break
+                    
+                    default:
+                        channel.channelModes[channelMode] = nil
+                }
+            }
+            
+        }
+    }
 }
 
 public struct IRCUserJoinedChannelNotification: NotificationDescriptor {

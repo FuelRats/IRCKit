@@ -145,6 +145,7 @@ open class IRCClient: IRCConnectionDelegate {
                 break
             
             case .MODE:
+                handleChannelModeChangeEvent(message: message)
                 break
             
             case .TOPIC:
