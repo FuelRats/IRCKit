@@ -15,28 +15,35 @@
 import Foundation
 
 public struct IRCClientConfiguration: Codable {
-    var autoConnect = false
-    var autoReconnect = false
+    public init (serverName: String, serverAddress: String, serverPort: Int = 6697, nickname: String, username: String, realName: String) {
+        self.serverName = serverName
+        self.serverAddress = serverAddress
+        self.nickname = nickname
+        self.username = username
+        self.realName = realName
+    }
     
-    var serverAddress: String
-    var serverPort: Int = 6697
-    var serverPassword: String?
-    var serverName: String
-    var nickname: String
-    var username: String
-    var realName: String
+    public var autoConnect = false
+    public var autoReconnect = false
     
-    var authenticationUsername: String?
-    var authenticationPassword: String?
+    public var serverAddress: String
+    public var serverPort: Int = 6697
+    public var serverPassword: String? = nil
+    public var serverName: String
+    public var nickname: String
+    public var username: String
+    public var realName: String
     
-    var floodControlDelayTimerInterval = 3
-    var floodControlMaximumMessages = 5
+    public var authenticationUsername: String?
+    public var authenticationPassword: String?
     
-    var prefersInsecureConnection = false
-    var chiperSuite: String?
-    var clientCertificatePath: String?
-    var allowsServerSelfSignedCertificate = false
+    public var floodControlDelayTimerInterval = 3
+    public var floodControlMaximumMessages = 5
     
-    var channels: [String] = []
+    public var prefersInsecureConnection = false
+    public var chiperSuite: String? = nil
+    public var clientCertificatePath: String? = nil
+    public var allowsServerSelfSignedCertificate = false
     
+    public var channels: [String] = []
 }
