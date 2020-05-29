@@ -22,7 +22,7 @@ public struct IRCMessage {
     public let time: Date
     public let sender: IRCSender?
     
-    public let messageId: String?
+    public let id: String?
     public let label: String?
     public let account: String?
     
@@ -70,7 +70,7 @@ public struct IRCMessage {
         }
         
         self.label = messageTags["label"]
-        self.messageId = messageTags["msgid"]
+        self.id = messageTags["msgid"]
         self.account = messageTags["account"]
         
         self.parameters = messageParameters

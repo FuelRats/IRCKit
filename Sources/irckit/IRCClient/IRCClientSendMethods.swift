@@ -76,7 +76,7 @@ extension IRCClient {
     
     func sendMessage (toChannel channel: IRCChannel, contents: String) {
         if self.hasIRCv3Capability(.labeledResponses) {
-            self.send(command: .PRIVMSG, parameters: [channel.name, contents], tags: ["label": String.random(length: 10)])
+            self.send(command: .PRIVMSG, parameters: [channel.name, contents])
         } else {
             self.send(command: .PRIVMSG, parameters: [channel.name, contents])
         }

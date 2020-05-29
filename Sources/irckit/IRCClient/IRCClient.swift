@@ -24,7 +24,6 @@ open class IRCClient: IRCConnectionDelegate {
     private(set) var currentNick: String
     public private(set) var connectCommands: [ConnectCommand] = []
     var activeAuthenticationMechanism: SASLMechanism? = nil
-    
     var isExpectingWhoisResponse = false
     
     public init (configuration: IRCClientConfiguration) {
@@ -245,7 +244,11 @@ open class IRCClient: IRCConnectionDelegate {
     }
     
     public func send (command: IRCCommand, parameters: [String], tags: [String: String?] = [:]) {
+        var tags = tags
         var params = parameters
+        if self.hasIRCv3Capability(.labeledResponses) && tags["label"] == nil {
+            tags["label"] = String.random(length: 10)
+        }
         
         /* In IRC if a command has more than one argument, the last argument can contain spaces if it is prefixed with a : */
         let lastParam = params.last ?? ""
@@ -255,7 +258,7 @@ open class IRCClient: IRCConnectionDelegate {
         
         let paramString = params.joined(separator: " ")
         
-        if tags.count > 0 {
+        if tags.count > 0 && self.hasIRCv3Capability(.messageTags) {
             let tagString = tags.map({ (key, value) -> String in
                 if let value = value {
                     return "\(key)=\(value)"
