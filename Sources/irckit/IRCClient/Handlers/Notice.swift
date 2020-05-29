@@ -14,6 +14,14 @@
 
 import Foundation
 
+public struct IRCServerNotice {
+    public let client: IRCClient
+    public let destination: IRCChannel?
+    public let sender: IRCSender
+    public let message: String
+    public let raw: IRCMessage
+}
+
 extension IRCClient {
     func handleNoticeEvent (message: IRCMessage) {
         if message.sender?.nickname == self.currentNick {
@@ -29,11 +37,27 @@ extension IRCClient {
     }
     
     func handleChannelNoticeEvent (message: IRCMessage, channel: IRCChannel) {
-        guard let sender = message.sender, let user = channel.member(fromSender: sender) else {
+        guard let sender = message.sender else {
             return
         }
         
         var messageContents = message.parameters[1]
+        if sender.isServer {
+            let notification = IRCChannelServerNoticeNotification().encode(payload: IRCServerNotice(
+                client: message.client,
+                destination: channel,
+                sender: sender,
+                message: messageContents,
+                raw: message
+            ))
+            
+            NotificationCenter.default.post(notification)
+            return
+        }
+        
+        guard let user = channel.member(fromSender: sender) else {
+            return
+        }
         
         if message.isCTCPReply {
             messageContents.remove(at: messageContents.startIndex)
@@ -61,11 +85,25 @@ extension IRCClient {
     }
     
     func handleNonChannelNoticeEvent (message: IRCMessage) {
-        guard message.sender != nil else {
+        guard let sender = message.sender else {
             return
         }
         
         var messageContents = message.parameters[1]
+        
+        if sender.isServer {
+            let notification = IRCPrivateServerNoticeNotification().encode(payload: IRCServerNotice(
+                client: message.client,
+                destination: nil,
+                sender: sender,
+                message: messageContents,
+                raw: message
+            ))
+            
+            NotificationCenter.default.post(notification)
+            return
+        }
+        
         let user = IRCUser(fromPrivateMessage: message, onClient: self)
         let destination = IRCChannel(privateMessage: user, onClient: self)
         
@@ -82,7 +120,6 @@ extension IRCClient {
             ))
             NotificationCenter.default.post(notification)
         } else {
-            
             let notification = IRCPrivateNoticeNotification().encode(payload: IRCPrivateMessage(
                 client: self,
                 destination: destination,
@@ -101,6 +138,12 @@ public struct IRCChannelNoticeNotification: NotificationDescriptor {
     public let name = Notification.Name("IRCChannelDidReceiveNotice")
 }
 
+public struct IRCChannelServerNoticeNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCServerNotice
+    public let name = Notification.Name("IRCChannelDidReceiveServerNotice")
+}
+
 public struct IRCChannelCTCPReplyNotification: NotificationDescriptor {
     public init () {}
     public typealias Payload = IRCPrivateMessage
@@ -110,6 +153,12 @@ public struct IRCChannelCTCPReplyNotification: NotificationDescriptor {
 public struct IRCPrivateNoticeNotification: NotificationDescriptor {
     public init () {}
     public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCDidReceivePrivateServerNotice")
+}
+
+public struct IRCPrivateServerNoticeNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCServerNotice
     public let name = Notification.Name("IRCDidReceivePrivateNotice")
 }
 
