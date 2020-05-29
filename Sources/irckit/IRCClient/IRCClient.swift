@@ -38,6 +38,10 @@ open class IRCClient: IRCConnectionDelegate {
         }
     }
     
+    public func connect () {
+        self.connection.connect()
+    }
+    
     public func didConnectToHost () {
         print("Connected")
     
