@@ -67,8 +67,7 @@ open class IRCClient: IRCConnectionDelegate {
         print("Connected")
     
         self.sendRegistration()
-        let notification = IRCClientConnectionNotification().encode(payload: IRCClientConnectionNotification.IRCConnectionChange(client: self))
-        NotificationCenter.default.post(notification)
+        IRCClientConnectionNotification().encode(payload: IRCClientConnectionNotification.IRCConnectionChange(client: self)).post()
         
     }
     

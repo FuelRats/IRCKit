@@ -23,8 +23,7 @@ public class IRCUser {
     
     public var account: String? = nil {
         didSet {
-            let notification = IRCUserAccountChangeNotification().encode(payload: IRCUserAccountChangeNotification.IRCUserAccountChange(user: self, oldValue: oldValue))
-            NotificationCenter.default.post(notification)
+            IRCUserAccountChangeNotification().encode(payload: IRCUserAccountChangeNotification.IRCUserAccountChange(user: self, oldValue: oldValue)).post()
         }
     }
     

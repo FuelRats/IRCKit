@@ -77,34 +77,31 @@ extension IRCClient {
             
             if message.isActionMessage {
                 messageContents = String(messageContents.suffix(from: messageContents.index(messageContents.startIndex, offsetBy: 7)))
-                let notification = IRCChannelActionMessageNotification().encode(payload: IRCPrivateMessage(
+                IRCChannelActionMessageNotification().encode(payload: IRCPrivateMessage(
                     client: self,
                     destination: channel,
                     user: user,
                     message: messageContents,
                     raw: message
-                ))
-                NotificationCenter.default.post(notification)
+                )).post()
             } else {
-                let notification = IRCChannelCTCPRequestNotification().encode(payload: IRCPrivateMessage(
+                IRCChannelCTCPRequestNotification().encode(payload: IRCPrivateMessage(
                     client: self,
                     destination: channel,
                     user: user,
                     message: messageContents,
                     raw: message
-                ))
-                NotificationCenter.default.post(notification)
+                )).post()
             }
         } else {
             user.lastMessage = messageContents
-            let notification = IRCChannelMessageNotification().encode(payload: IRCPrivateMessage(
+            IRCChannelMessageNotification().encode(payload: IRCPrivateMessage(
                 client: self,
                 destination: channel,
                 user: user,
                 message: messageContents,
                 raw: message
-            ))
-            NotificationCenter.default.post(notification)
+            )).post()
         }
     }
     
@@ -124,40 +121,36 @@ extension IRCClient {
                 let user = IRCUser(fromPrivateMessage: message, onClient: self)
                 let destination = IRCChannel(privateMessage: user, onClient: self)
                 
-                let notification = IRCPrivateActionMessageNotification().encode(payload: IRCPrivateMessage(
+                IRCPrivateActionMessageNotification().encode(payload: IRCPrivateMessage(
                     client: self,
                     destination: destination,
                     user: user,
                     message: messageContents,
                     raw: message
-                ))
-                
-                NotificationCenter.default.post(notification)
+                )).post()
             } else {
                 let user = IRCUser(fromPrivateMessage: message, onClient: self)
                 let destination = IRCChannel(privateMessage: user, onClient: self)
                 
-                let notification = IRCPrivateCTCPRequestNotification().encode(payload: IRCPrivateMessage(
+                IRCPrivateCTCPRequestNotification().encode(payload: IRCPrivateMessage(
                     client: self,
                     destination: destination,
                     user: user,
                     message: messageContents,
                     raw: message
-                ))
-                NotificationCenter.default.post(notification)
+                )).post()
             }
         } else {
             let user = IRCUser(fromPrivateMessage: message, onClient: self)
             let destination = IRCChannel(privateMessage: user, onClient: self)
             
-            let notification = IRCPrivateMessageNotification().encode(payload: IRCPrivateMessage(
+            IRCPrivateMessageNotification().encode(payload: IRCPrivateMessage(
                 client: self,
                 destination: destination,
                 user: user,
                 message: messageContents,
                 raw: message
-            ))
-            NotificationCenter.default.post(notification)
+            )).post()
         }
     }
 }

@@ -22,6 +22,14 @@ public protocol NotificationDescriptor {
     func decode(_ note: Notification) -> Payload
 }
 
+extension Notification {
+    func post () {
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(self)
+        }
+    }
+}
+
 public extension NotificationDescriptor {
     var _modelKey: String {
         return "ModelKey"

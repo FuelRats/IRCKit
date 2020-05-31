@@ -43,15 +43,13 @@ extension IRCClient {
         
         var messageContents = message.parameters[1]
         if sender.isServer {
-            let notification = IRCChannelServerNoticeNotification().encode(payload: IRCServerNotice(
+            IRCChannelServerNoticeNotification().encode(payload: IRCServerNotice(
                 client: message.client,
                 destination: channel,
                 sender: sender,
                 message: messageContents,
                 raw: message
-            ))
-            
-            NotificationCenter.default.post(notification)
+            )).post()
             return
         }
         
@@ -63,24 +61,22 @@ extension IRCClient {
             messageContents.remove(at: messageContents.startIndex)
             messageContents.remove(at: messageContents.index(messageContents.endIndex, offsetBy: -1))
             
-            let notification = IRCChannelCTCPReplyNotification().encode(payload: IRCPrivateMessage(
+            IRCChannelCTCPReplyNotification().encode(payload: IRCPrivateMessage(
                 client: self,
                 destination: channel,
                 user: user,
                 message: messageContents,
                 raw: message
-            ))
-            NotificationCenter.default.post(notification)
+            )).post()
         } else {
             user.lastMessage = messageContents
-            let notification = IRCChannelNoticeNotification().encode(payload: IRCPrivateMessage(
+            IRCChannelNoticeNotification().encode(payload: IRCPrivateMessage(
                 client: self,
                 destination: channel,
                 user: user,
                 message: messageContents,
                 raw: message
-            ))
-            NotificationCenter.default.post(notification)
+            )).post()
         }
     }
     
@@ -92,15 +88,13 @@ extension IRCClient {
         var messageContents = message.parameters[1]
         
         if sender.isServer {
-            let notification = IRCPrivateServerNoticeNotification().encode(payload: IRCServerNotice(
+            IRCPrivateServerNoticeNotification().encode(payload: IRCServerNotice(
                 client: message.client,
                 destination: nil,
                 sender: sender,
                 message: messageContents,
                 raw: message
-            ))
-            
-            NotificationCenter.default.post(notification)
+            )).post()
             return
         }
         
@@ -111,23 +105,21 @@ extension IRCClient {
             messageContents.remove(at: messageContents.startIndex)
             messageContents.remove(at: messageContents.index(messageContents.endIndex, offsetBy: -1))
             
-            let notification = IRCPrivateCTCPReplyNotification().encode(payload: IRCPrivateMessage(
+            IRCPrivateCTCPReplyNotification().encode(payload: IRCPrivateMessage(
                 client: self,
                 destination: destination,
                 user: user,
                 message: messageContents,
                 raw: message
-            ))
-            NotificationCenter.default.post(notification)
+            )).post()
         } else {
-            let notification = IRCPrivateNoticeNotification().encode(payload: IRCPrivateMessage(
+            IRCPrivateNoticeNotification().encode(payload: IRCPrivateMessage(
                 client: self,
                 destination: destination,
                 user: user,
                 message: messageContents,
                 raw: message
-            ))
-            NotificationCenter.default.post(notification)
+            )).post()
         }
     }
 }

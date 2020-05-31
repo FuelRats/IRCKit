@@ -58,26 +58,24 @@ extension IRCClient {
                 self.send(command: .WHO, parameters: channel.name)
             }
             
-            let notification = IRCUserJoinedChannelNotification().encode(payload: IRCChannelEvent(
+            IRCUserJoinedChannelNotification().encode(payload: IRCChannelEvent(
                 user: user,
                 channel: channel,
                 message: nil,
                 raw: message
-            ))
-            NotificationCenter.default.post(notification)
+            )).post()
         } else {
             guard let channel = self.getChannel(named: message.parameters[0]) else {
                 return
             }
             channel.set(member: user)
             
-            let notification = IRCUserJoinedChannelNotification().encode(payload: IRCChannelEvent(
+            IRCUserJoinedChannelNotification().encode(payload: IRCChannelEvent(
                 user: user,
                 channel: channel,
                 message: nil,
                 raw: message
-            ))
-            NotificationCenter.default.post(notification)
+            )).post()
         }
     }
     
@@ -98,13 +96,12 @@ extension IRCClient {
             self.removeChannel(named: message.parameters[0])
         }
         
-        let notification = IRCUserLeftChannelNotification().encode(payload: IRCChannelEvent(
+        IRCUserLeftChannelNotification().encode(payload: IRCChannelEvent(
             user: user,
             channel: channel,
             message: message.parameters[1],
             raw: message
-        ))
-        NotificationCenter.default.post(notification)
+        )).post()
     }
     
     func handleChannelKickEvent (message: IRCMessage) {
@@ -126,14 +123,13 @@ extension IRCClient {
             self.removeChannel(named: message.parameters[0])
         }
         
-        let notification = IRCChannelKickNotification().encode(payload: IRCChannelKickNotification.IRCChannelKick(
+        IRCChannelKickNotification().encode(payload: IRCChannelKickNotification.IRCChannelKick(
             sender: sender,
             channel: channel,
             kickedUser: kickUser,
             message: message.parameters[2],
             raw: message
-        ))
-        NotificationCenter.default.post(notification)
+        )).post()
     }
     
     func handleChannelInviteEvent (message: IRCMessage) {
@@ -145,13 +141,12 @@ extension IRCClient {
             return
         }
         
-        let notification = IRCChannelInviteNotification().encode(payload: IRCChannelInviteNotification.IRCChannelInvite(
+        IRCChannelInviteNotification().encode(payload: IRCChannelInviteNotification.IRCChannelInvite(
             sender: sender,
             channel: channel,
             invitedNick: message.parameters[1],
             raw: message
-        ))
-        NotificationCenter.default.post(notification)
+        )).post()
     }
     
     func handleChannelTopicEvent (message: IRCMessage) {
@@ -166,13 +161,12 @@ extension IRCClient {
         
         let user = channel.member(fromSender: sender)
         
-        let notification = IRCChannelTopicChangeNotification().encode(payload: IRCChannelTopicChangeNotification.IRCChannelTopicChange(
+        IRCChannelTopicChangeNotification().encode(payload: IRCChannelTopicChangeNotification.IRCChannelTopicChange(
             user: user,
             channel: channel,
             contents: message.parameters[1],
             raw: message
-        ))
-        NotificationCenter.default.post(notification)
+        )).post()
     }
     
     func handleChannelModeChangeEvent (message: IRCMessage) {
