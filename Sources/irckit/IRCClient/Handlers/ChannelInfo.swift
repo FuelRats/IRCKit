@@ -82,12 +82,12 @@ extension IRCClient {
         user.isIRCOperator = modes.contains("*") || modes.contains("!")
         user.isSecure = modes.contains("s")
         
-        var realNameIndex = 8
+        var realNameIndex = 7
         if message.parameters.count > 8 {
             let account = message.parameters[7] == "0" ? nil : message.parameters[5]
             user.account = account
             
-            realNameIndex = 9
+            realNameIndex = 8
         }
         
         user.realName = message.parameters[realNameIndex]
