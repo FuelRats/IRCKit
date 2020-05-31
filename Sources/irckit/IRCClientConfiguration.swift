@@ -18,6 +18,7 @@ public struct IRCClientConfiguration: Codable {
     public init (serverName: String, serverAddress: String, serverPort: Int = 6697, nickname: String, username: String, realName: String) {
         self.serverName = serverName
         self.serverAddress = serverAddress
+        self.serverPort = serverPort
         self.nickname = nickname
         self.username = username
         self.realName = realName
