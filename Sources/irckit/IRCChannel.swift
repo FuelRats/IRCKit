@@ -22,6 +22,7 @@ public class IRCChannel {
     }
     
     let client: IRCClient
+    public let id: UUID
     public let name: String
     public internal(set) var channelModes: [IRCChannelMode: String?]
     public internal(set) var topic: Topic?
@@ -32,6 +33,7 @@ public class IRCChannel {
     public let isPrivateMessage: Bool
     
     init (channelName: String, onClient client: IRCClient, channelModes: [IRCChannelMode: String?] = [:], members: [IRCUser] = []) {
+        self.id = UUID()
         self.name = channelName
         self.client = client
         self.channelModes = channelModes
@@ -40,6 +42,7 @@ public class IRCChannel {
     }
     
     init (privateMessage sender: IRCUser, onClient client: IRCClient) {
+        self.id = UUID()
         self.name = sender.nickname
         self.client = client
         self.channelModes = [:]

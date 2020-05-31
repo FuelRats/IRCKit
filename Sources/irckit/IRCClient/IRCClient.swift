@@ -13,20 +13,44 @@
  */
 
 import Foundation
+#if canImport(Combine)
+    import Combine
+#endif
 
 public typealias ConnectCommand = (IRCClient) -> Void
 
 open class IRCClient: IRCConnectionDelegate {
+    @available(iOS 13, macOS 10.15, *)
+    lazy var publisher = ObservableObjectPublisher()
+    
+    public let id: UUID
     internal let connection: IRCConnection
     internal let configuration: IRCClientConfiguration
-    private(set) var serverInfo = IRCServerInfo()
-    private(set) var channels: [IRCChannel] = []
-    private(set) var currentNick: String
+    public private(set) var serverInfo = IRCServerInfo() {
+        willSet {
+            if #available(iOS 13, macOS 10.15, *) {
+                DispatchQueue.main.async {
+                    self.objectWillChange.send()
+                }
+            }
+        }
+    }
+    public private(set) var channels: [IRCChannel] = [] {
+        willSet {
+            if #available(iOS 13, macOS 10.15, *) {
+                DispatchQueue.main.async {
+                    self.objectWillChange.send()
+                }
+            }
+        }
+    }
+    public private(set) var currentNick: String
     public private(set) var connectCommands: [ConnectCommand] = []
     var activeAuthenticationMechanism: SASLMechanism? = nil
     var isExpectingWhoisResponse = false
     
     public init (configuration: IRCClientConfiguration) {
+        self.id = UUID()
         self.configuration = configuration
         self.currentNick = configuration.nickname
         
@@ -276,4 +300,7 @@ open class IRCClient: IRCConnectionDelegate {
     }
 }
 
-
+@available(iOS 13, macOS 10.15, *)
+extension IRCClient: ObservableObject {
+    
+}
