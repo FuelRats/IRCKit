@@ -20,12 +20,9 @@ import Foundation
 public typealias ConnectCommand = (IRCClient) -> Void
 
 open class IRCClient: IRCConnectionDelegate {
-    @available(iOS 13, macOS 10.15, *)
-    lazy var publisher = ObservableObjectPublisher()
-    
     public let id: UUID
     internal let connection: IRCConnection
-    internal let configuration: IRCClientConfiguration
+    public let configuration: IRCClientConfiguration
     public private(set) var serverInfo = IRCServerInfo() {
         willSet {
             if #available(iOS 13, macOS 10.15, *) {

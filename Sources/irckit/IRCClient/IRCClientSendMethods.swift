@@ -30,7 +30,7 @@ extension IRCClient {
             let chunkSize = min(channels.count, 10)
             let joinChunk = Array(channels[0 ..< chunkSize])
             channels.removeFirst(chunkSize)
-            self.send(command: .JOIN, parameters: joinChunk)
+            self.send(command: .JOIN, parameters: joinChunk.joined(separator: ","))
         }
     }
     
