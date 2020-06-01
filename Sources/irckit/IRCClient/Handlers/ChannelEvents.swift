@@ -14,10 +14,17 @@
 
 import Foundation
 
-public struct IRCChannelEvent {
+public struct IRCChannelEvent: IRCNotification {
+    public enum ChannelEvent {
+        case Join
+        case Part
+    }
+    
+    public let id: String
     public let user: IRCUser
     public let channel: IRCChannel
     public let message: String?
+    public let event: ChannelEvent
     public let raw: IRCMessage
 }
 
@@ -59,9 +66,11 @@ extension IRCClient {
             }
             
             IRCUserJoinedChannelNotification().encode(payload: IRCChannelEvent(
+                id: message.label,
                 user: user,
                 channel: channel,
                 message: nil,
+                event: .Join,
                 raw: message
             )).post()
         } else {
@@ -71,9 +80,11 @@ extension IRCClient {
             channel.set(member: user)
             
             IRCUserJoinedChannelNotification().encode(payload: IRCChannelEvent(
+                id: message.label,
                 user: user,
                 channel: channel,
                 message: nil,
+                event: .Join,
                 raw: message
             )).post()
         }
@@ -97,9 +108,11 @@ extension IRCClient {
         }
         
         IRCUserLeftChannelNotification().encode(payload: IRCChannelEvent(
+            id: message.label,
             user: user,
             channel: channel,
             message: message.parameters[1],
+            event: .Part,
             raw: message
         )).post()
     }

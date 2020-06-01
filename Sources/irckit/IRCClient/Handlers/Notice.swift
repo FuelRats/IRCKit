@@ -62,6 +62,7 @@ extension IRCClient {
             messageContents.remove(at: messageContents.index(messageContents.endIndex, offsetBy: -1))
             
             IRCChannelCTCPReplyNotification().encode(payload: IRCPrivateMessage(
+                id: message.label,
                 client: self,
                 destination: channel,
                 user: user,
@@ -71,6 +72,7 @@ extension IRCClient {
         } else {
             user.lastMessage = messageContents
             IRCChannelNoticeNotification().encode(payload: IRCPrivateMessage(
+                id: message.label,
                 client: self,
                 destination: channel,
                 user: user,
@@ -106,6 +108,7 @@ extension IRCClient {
             messageContents.remove(at: messageContents.index(messageContents.endIndex, offsetBy: -1))
             
             IRCPrivateCTCPReplyNotification().encode(payload: IRCPrivateMessage(
+                id: message.label,
                 client: self,
                 destination: destination,
                 user: user,
@@ -114,6 +117,7 @@ extension IRCClient {
             )).post()
         } else {
             IRCPrivateNoticeNotification().encode(payload: IRCPrivateMessage(
+                id: message.label,
                 client: self,
                 destination: destination,
                 user: user,

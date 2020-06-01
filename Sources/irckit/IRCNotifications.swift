@@ -23,3 +23,7 @@ public struct IRCClientConnectionNotification: NotificationDescriptor {
     public typealias Payload = IRCConnectionChange
     public let name = Notification.Name("IRCConnectionDidConnect")
 }
+
+public protocol IRCNotification {
+    var id: String { get }
+}

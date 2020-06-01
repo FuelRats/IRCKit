@@ -78,7 +78,8 @@ public struct IRCUserQuitNotification: NotificationDescriptor {
 public struct IRCUserChangedNickNotification: NotificationDescriptor {
     public init () {}
     
-    public struct IRCNickChange {
+    public struct IRCNickChange: IRCNotification {
+        public let id: String
         public let message: IRCMessage
         public let newNick: String
     }

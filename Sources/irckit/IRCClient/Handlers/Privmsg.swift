@@ -14,7 +14,8 @@
 
 import Foundation
 
-public struct IRCPrivateMessage {
+public struct IRCPrivateMessage: IRCNotification {
+    public let id: String
     public let client: IRCClient
     public let destination: IRCChannel
     public let user: IRCUser
@@ -78,6 +79,7 @@ extension IRCClient {
             if message.isActionMessage {
                 messageContents = String(messageContents.suffix(from: messageContents.index(messageContents.startIndex, offsetBy: 7)))
                 IRCChannelActionMessageNotification().encode(payload: IRCPrivateMessage(
+                    id: message.label,
                     client: self,
                     destination: channel,
                     user: user,
@@ -86,6 +88,7 @@ extension IRCClient {
                 )).post()
             } else {
                 IRCChannelCTCPRequestNotification().encode(payload: IRCPrivateMessage(
+                    id: message.label,
                     client: self,
                     destination: channel,
                     user: user,
@@ -96,6 +99,7 @@ extension IRCClient {
         } else {
             user.lastMessage = messageContents
             IRCChannelMessageNotification().encode(payload: IRCPrivateMessage(
+                id: message.label,
                 client: self,
                 destination: channel,
                 user: user,
@@ -122,6 +126,7 @@ extension IRCClient {
                 let destination = IRCChannel(privateMessage: user, onClient: self)
                 
                 IRCPrivateActionMessageNotification().encode(payload: IRCPrivateMessage(
+                    id: message.label,
                     client: self,
                     destination: destination,
                     user: user,
@@ -133,6 +138,7 @@ extension IRCClient {
                 let destination = IRCChannel(privateMessage: user, onClient: self)
                 
                 IRCPrivateCTCPRequestNotification().encode(payload: IRCPrivateMessage(
+                    id: message.label,
                     client: self,
                     destination: destination,
                     user: user,
@@ -145,6 +151,7 @@ extension IRCClient {
             let destination = IRCChannel(privateMessage: user, onClient: self)
             
             IRCPrivateMessageNotification().encode(payload: IRCPrivateMessage(
+                id: message.label,
                 client: self,
                 destination: destination,
                 user: user,

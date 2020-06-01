@@ -67,7 +67,8 @@ extension IRCClient {
 
 public struct IRCUserAccountChangeNotification: NotificationDescriptor {
     public init () {}
-    public struct IRCUserAccountChange {
+    public struct IRCUserAccountChange: IRCNotification {
+        public let id: String
         public let user: IRCUser
         public let oldValue: String?
     }

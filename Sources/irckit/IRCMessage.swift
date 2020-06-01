@@ -22,9 +22,13 @@ public struct IRCMessage {
     public let time: Date
     public let sender: IRCSender?
     
-    public let id: String?
-    public let label: String?
+    public let messageId: String?
+    public let label: String
     public let account: String?
+    
+    public var id: String {
+        return label
+    }
     
     init? (line: String, client: IRCClient) {
         self.client = client
@@ -69,8 +73,8 @@ public struct IRCMessage {
             self.time = Date()
         }
         
-        self.label = messageTags["label"]
-        self.id = messageTags["msgid"]
+        self.label = messageTags["label"] ?? UUID().uuidString
+        self.messageId = messageTags["msgid"]
         self.account = messageTags["account"]
         
         self.parameters = messageParameters
