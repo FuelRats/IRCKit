@@ -177,9 +177,9 @@ public enum IRCChannelMode: Character, Hashable {
         })
     }
     
-    internal static func modeMap (fromString channelModeString: String) -> [IRCChannelMode: String?] {
+    internal static func modeMap (fromParams channelModes: [String]) -> [IRCChannelMode: String?] {
         var modeMap: [IRCChannelMode: String?] = [:]
-        var modeArgs = channelModeString.components(separatedBy: " ")
+        var modeArgs = channelModes
         let modes = modeArgs[0]
         modeArgs.removeFirst()
         

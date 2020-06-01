@@ -23,7 +23,7 @@ public class IRCUser {
     
     public var account: String? = nil {
         didSet {
-            IRCUserAccountChangeNotification().encode(payload: IRCUserAccountChangeNotification.IRCUserAccountChange(user: self, oldValue: oldValue)).post()
+            IRCUserAccountChangeNotification().encode(payload: IRCUserAccountChangeNotification.IRCUserAccountChange(id: UUID().uuidString, user: self, oldValue: oldValue)).post()
         }
     }
     
@@ -35,7 +35,7 @@ public class IRCUser {
     
     public internal(set) var channelUserModes: Set<IRCChannelUserMode> = []
     
-    init (onClient client: IRCClient, nickname: String, username: String, hostmask: String, realName: String?, account: String?) {
+    init (onClient client: IRCClient, nickname: String, username: String, hostmask: String, realName: String?, account: String?, userModes: Set<IRCChannelUserMode> = []) {
         self.client = client
         self.nickname = nickname
         self.username = username
@@ -44,6 +44,7 @@ public class IRCUser {
         self.account = account
         self.isAway = false
         self.lastMessage = nil
+        self.channelUserModes = userModes
     }
     
     init (fromPrivateMessage message: IRCMessage, onClient client: IRCClient) {
@@ -57,6 +58,20 @@ public class IRCUser {
         self.account = message.account
         self.isAway = false
         self.lastMessage = nil
+    }
+    
+    public var highestUserMode: IRCChannelUserMode? {
+        let modePriority: [IRCChannelUserMode] = [.voice, .halfop, .op, .admin, .owner]
+        
+        if self.channelUserModes.count < 1 {
+            return nil
+        }
+        
+        let sortedModes = self.channelUserModes.sorted(by: { mode1, mode2 in
+            return modePriority.firstIndex(of: mode1) ?? 0 > modePriority.firstIndex(of: mode2) ?? 0
+        })
+        
+        return sortedModes[0]
     }
 }
 

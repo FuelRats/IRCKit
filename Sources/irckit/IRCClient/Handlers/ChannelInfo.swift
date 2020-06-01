@@ -29,10 +29,10 @@ extension IRCClient {
         let names = nameString.components(separatedBy: .whitespaces)
         for name in names {
             var name = name
-            var userModes: [IRCChannelUserMode] = []
+            var userModes: Set<IRCChannelUserMode> = []
             while let symbol = name.first, let userMode = IRCChannelUserMode.from(symbol: symbol, onClient: self) {
                 name.removeFirst()
-                userModes.append(userMode)
+                userModes.insert(userMode)
             }
             
             guard let (nickname, username, hostmask) = IRCSender.hostmaskComponents(from: name) else {
@@ -45,7 +45,8 @@ extension IRCClient {
                 username: username,
                 hostmask: hostmask,
                 realName: nil,
-                account: nil
+                account: nil,
+                userModes: userModes
             )
             
             channel.set(member: user)
@@ -130,7 +131,7 @@ extension IRCClient {
             return
         }
         
-        channel.channelModes = IRCChannelMode.modeMap(fromString: message.parameters[2])
+        channel.channelModes = IRCChannelMode.modeMap(fromParams: Array(message.parameters[2...]))
     }
     
     func handleChannelCreatedInformation (message: IRCMessage) {
