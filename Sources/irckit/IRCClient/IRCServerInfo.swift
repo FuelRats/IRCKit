@@ -21,7 +21,13 @@ public struct IRCServerInfo {
     
     public internal(set) var supportedUserModes: [IRCUserMode]?
     public internal(set) var supportedChannelModes: [IRCChannelMode]?
-    public internal(set) var prefixMapping: [IRCChannelUserMode: Character] = [:]
+    public internal(set) var prefixMapping: [IRCChannelUserMode: Character] = [
+        .owner: "~",
+        .admin: "&",
+        .op: "@",
+        .halfop: "%",
+        .voice: "+"
+    ]
     public internal(set) var caseMapping: String?
     public internal(set) var supportedChannelTypes: [IRCChannelType]?
     public internal(set) var supportedIRCv3Capabilities: [IRCv3Capability] = []
