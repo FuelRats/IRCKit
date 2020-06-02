@@ -60,6 +60,15 @@ public class IRCUser {
         self.lastMessage = nil
     }
     
+    init (dummyName: String, onClient client: IRCClient, userModes: Set<IRCChannelUserMode> = []) {
+        self.client = client
+        self.nickname = dummyName
+        self.username = dummyName
+        self.hostmask = "127.0.0.1"
+        self.realName = dummyName
+        self.channelUserModes = userModes
+    }
+    
     public var highestUserMode: IRCChannelUserMode? {
         let modePriority: [IRCChannelUserMode] = [.voice, .halfop, .op, .admin, .owner]
         
@@ -82,8 +91,12 @@ public enum IRCChannelUserMode: Character {
     case halfop = "h"
     case voice = "v"
     
-    static func from (symbol: Character, onClient client: IRCClient) -> IRCChannelUserMode? {
+    public static func from (symbol: Character, onClient client: IRCClient) -> IRCChannelUserMode? {
         return client.serverInfo.prefixMapping.first(where: { $0.value == symbol })?.key
+    }
+    
+    public func toPrefix (onClient client: IRCClient) -> String? {
+        return String(client.serverInfo.prefixMapping.first(where: { $0.key == self })?.value ?? Character(""))
     }
 
     static func map (fromString prefixString: String) -> [IRCChannelUserMode: Character] {

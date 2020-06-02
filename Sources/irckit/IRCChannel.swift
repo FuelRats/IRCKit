@@ -50,6 +50,16 @@ public class IRCChannel {
         self.isPrivateMessage = true
     }
     
+    init (dummyName: String, onClient client: IRCClient, members: [IRCUser] = []) {
+        self.id = UUID()
+        self.name = dummyName
+        self.client = client
+        self.channelModes = [:]
+        self.members = members
+        self.isPrivateMessage = false
+        self.topic = Topic(contents: "Test Topic", author: "John", date: Date())
+    }
+    
     public func send (message: String) {
         self.client.sendMessage(toChannel: self, contents: message)
     }

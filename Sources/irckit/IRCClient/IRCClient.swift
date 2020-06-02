@@ -59,6 +59,22 @@ open class IRCClient: IRCConnectionDelegate {
         }
     }
     
+    public init (dummyName: String, channels: [String], members: [String: Set<IRCChannelUserMode>]) {
+        self.id = UUID()
+        self.configuration = IRCClientConfiguration(serverName: dummyName, serverAddress: "127.0.0.1", nickname: "Dummy", username: "dummy", realName: "Dummy")
+        self.currentNick = "Dummy"
+        self.connection = try! IRCConnection(configuration: configuration)!
+        self.connection.delegate = self
+        self.channels = channels.map({ channel in
+            var users = [IRCUser]()
+            
+            for member in members {
+                users.append(IRCUser(dummyName: member.key, onClient: self, userModes: member.value))
+            }
+            return IRCChannel(dummyName: channel, onClient: self, members: users)
+        })
+    }
+    
     public func connect () {
         self.connection.connect()
     }
