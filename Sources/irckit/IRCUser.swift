@@ -60,15 +60,6 @@ public class IRCUser {
         self.lastMessage = nil
     }
     
-    init (dummyName: String, onClient client: IRCClient, userModes: Set<IRCChannelUserMode> = []) {
-        self.client = client
-        self.nickname = dummyName
-        self.username = dummyName
-        self.hostmask = "127.0.0.1"
-        self.realName = dummyName
-        self.channelUserModes = userModes
-    }
-    
     public var highestUserMode: IRCChannelUserMode? {
         let modePriority: [IRCChannelUserMode] = [.voice, .halfop, .op, .admin, .owner]
         

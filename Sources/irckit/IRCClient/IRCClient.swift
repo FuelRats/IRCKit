@@ -22,7 +22,7 @@ public typealias ConnectCommand = (IRCClient) -> Void
 open class IRCClient: IRCConnectionDelegate {
     public let id: UUID
     internal let connection: IRCConnection
-    public let configuration: IRCClientConfiguration
+    public var configuration: IRCClientConfiguration
     public private(set) var serverInfo = IRCServerInfo() {
         willSet {
             if #available(iOS 13, macOS 10.15, *) {
@@ -32,7 +32,7 @@ open class IRCClient: IRCConnectionDelegate {
             }
         }
     }
-    public private(set) var channels: [IRCChannel] = [] {
+    public internal(set) var channels: [IRCChannel] = [] {
         willSet {
             if #available(iOS 13, macOS 10.15, *) {
                 DispatchQueue.main.async {
@@ -57,22 +57,6 @@ open class IRCClient: IRCConnectionDelegate {
         if self.configuration.autoConnect {
             self.connection.connect()
         }
-    }
-    
-    public init (dummyName: String, channels: [String], members: [String: Set<IRCChannelUserMode>]) {
-        self.id = UUID()
-        self.configuration = IRCClientConfiguration(serverName: dummyName, serverAddress: "127.0.0.1", nickname: "Dummy", username: "dummy", realName: "Dummy")
-        self.currentNick = "Dummy"
-        self.connection = try! IRCConnection(configuration: configuration)!
-        self.connection.delegate = self
-        self.channels = channels.map({ channel in
-            var users = [IRCUser]()
-            
-            for member in members {
-                users.append(IRCUser(dummyName: member.key, onClient: self, userModes: member.value))
-            }
-            return IRCChannel(dummyName: channel, onClient: self, members: users)
-        })
     }
     
     public func connect () {

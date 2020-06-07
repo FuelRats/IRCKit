@@ -14,14 +14,14 @@
 
 import Foundation
 
-public class IRCChannel {
+public class IRCChannel: Equatable {
     public struct Topic {
         public internal(set) var contents: String
         public internal(set) var author: String?
         public internal(set) var date: Date?
     }
     
-    let client: IRCClient
+    public let client: IRCClient
     public let id: UUID
     public let name: String
     public internal(set) var channelModes: [IRCChannelMode: String?]
@@ -49,16 +49,7 @@ public class IRCChannel {
         self.members = [sender]
         self.isPrivateMessage = true
     }
-    
-    init (dummyName: String, onClient client: IRCClient, members: [IRCUser] = []) {
-        self.id = UUID()
-        self.name = dummyName
-        self.client = client
-        self.channelModes = [:]
-        self.members = members
-        self.isPrivateMessage = false
-        self.topic = Topic(contents: "Test Topic", author: "John", date: Date())
-    }
+
     
     public func send (message: String) {
         self.client.sendMessage(toChannel: self, contents: message)
@@ -116,5 +107,10 @@ public class IRCChannel {
         return members.first(where: {
             $0.nickname == sender.nickname
         })
+    }
+    
+    
+    public static func == (lhs: IRCChannel, rhs: IRCChannel) -> Bool {
+        return lhs.client === rhs.client && lhs.name == rhs.name
     }
 }
