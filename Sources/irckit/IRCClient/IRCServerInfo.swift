@@ -236,6 +236,7 @@ public enum IRCv3Capability: String {
     case batchMessageProcessing = "batch"
     case labeledResponses = "labeled-response"
     case changeRealName = "setname"
+    case strictTransportSecurity = "sts"
     
     internal static func list (fromString capString: String) -> [IRCv3Capability] {
         let availableCapabilities = capString.components(separatedBy: .whitespaces)

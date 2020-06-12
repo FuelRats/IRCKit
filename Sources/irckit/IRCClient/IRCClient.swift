@@ -23,7 +23,7 @@ open class IRCClient: IRCConnectionDelegate {
     public let id: UUID
     internal let connection: IRCConnection
     public var configuration: IRCClientConfiguration
-    public private(set) var serverInfo = IRCServerInfo() {
+    public internal(set) var serverInfo = IRCServerInfo() {
         willSet {
             if #available(iOS 13, macOS 10.15, *) {
                 DispatchQueue.main.async {
@@ -212,62 +212,6 @@ open class IRCClient: IRCConnectionDelegate {
             default:
                 break
         }
-    }
-    
-    func handleIRCv3CapabilityReply (message: IRCMessage) {
-        let capProtocolCommand = message.parameters[1]
-        switch capProtocolCommand {
-            case "LS":
-                let supportedCapabilities = IRCv3Capability.list(fromString: message.parameters[2])
-                self.serverInfo.supportedIRCv3Capabilities = supportedCapabilities
-                self.requestIRCv3Capabilities(capabilities: supportedCapabilities)
-                break
-            
-            case "ACK":
-                let acceptedCapabilities = IRCv3Capability.list(fromString: message.parameters[2])
-                self.serverInfo.enabledIRCv3Capabilities = acceptedCapabilities
-                
-                
-                let caps = IRCv3Capability.map(fromString: message.parameters[2])
-                if let saslCap = caps[.sasl] as? [String] {
-                    let mechanisms = saslCap.compactMap({
-                        SASLMechanism(rawValue: $0)
-                    })
-                    self.serverInfo.supportedSASLMechanisms = mechanisms
-                } else if self.hasIRCv3Capability(.sasl) {
-                    // This server does not tell us what SASL mechanisms are supported, we will assume it supports PLAIN and EXTERNAL, and pray.
-                    self.serverInfo.supportedSASLMechanisms = [.plainText, .external]
-                }
-                
-                if self.serverInfo.enabledIRCv3Capabilities.contains(.sasl) {
-                    if self.configuration.clientCertificatePath != nil && self.serverInfo.supportedSASLMechanisms.contains(.external) {
-                        self.initiateAuthentication(mechanism: .external)
-                        return
-                    } else if self.configuration.authenticationPassword != nil && self.serverInfo.supportedSASLMechanisms.contains(.plainText) {
-                        self.initiateAuthentication(mechanism: .plainText)
-                        return
-                    }
-                }
-                self.send(command: .CAP, parameters: ["END"])
-                break
-            
-            case "NAK":
-                self.send(command: .CAP, parameters: ["END"])
-                break
-            
-            case "NEW":
-                break
-            
-            case "DEL":
-                break
-            
-            default:
-                break
-        }
-    }
-    
-    func hasIRCv3Capability (_ capability: IRCv3Capability) -> Bool {
-        return self.serverInfo.enabledIRCv3Capabilities.contains(capability)
     }
     
     func getChannel (named channelName: String) -> IRCChannel? {
