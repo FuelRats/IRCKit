@@ -96,6 +96,10 @@ public class IRCConnection: ChannelInboundHandler {
             })
     }
     
+    public var connected: Bool {
+        return self.channel?.isActive ?? false && self.channel?.isWritable ?? false
+    }
+    
     public func channelActive (context: ChannelHandlerContext) {
         self.connectionAttempts = 0
         

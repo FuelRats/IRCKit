@@ -22,6 +22,9 @@ extension IRCClient {
         self.send(command: .USER, parameters: [self.configuration.username, "0", "*", self.configuration.realName])
         self.sendNicknameChange(nickname: self.configuration.nickname)
         self.send(command: .CAP, parameters: ["LS", "302"])
+        if self.monitor.count > 0 && self.serverInfo.supportsMonitor {
+            self.sendMonitor(addTargets: self.monitor)
+        }
     }
     
     func sendJoin (channels: [String]) {
@@ -89,5 +92,24 @@ extension IRCClient {
     func sendCTCPRequest(toChannel channel: IRCChannel, contents: String) {
         self.send(command: .PRIVMSG, parameters: [channel.name, "\u{001}\(contents)\u{001}"])
     }
+    
+    func sendMonitor (addTargets targets: Set<String>) {
+        self.send(command: .MONITOR, parameters: "+", targets.joined(separator: ","))
+    }
+    
+    func sendMonitor (removeTargets targets: Set<String>) {
+        self.send(command: .MONITOR, parameters: "-", targets.joined(separator: ","))
+    }
+    
+    func sendMonitorClear () {
+        self.send(command: .MONITOR, parameters: "C")
+    }
+    
+    func sendMonitorListRequest () {
+        self.send(command: .MONITOR, parameters: "L")
+    }
+    
+    func sendMonitorStatusRequest () {
+        self.send(command: .MONITOR, parameters: "S")
+    }
 }
-

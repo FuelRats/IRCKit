@@ -34,6 +34,7 @@ public struct IRCServerInfo {
     public internal(set) var enabledIRCv3Capabilities: [IRCv3Capability] = []
     public internal(set) var supportedSASLMechanisms: [SASLMechanism] = []
     public internal(set) var supportsExtendedWhoQuery = false
+    public internal(set) var supportsMonitor = false
     
     public internal(set) var maximumAwayMessageLength: Int?
     public internal(set) var maximumChannelNameLength: Int?
@@ -42,6 +43,7 @@ public struct IRCServerInfo {
     public internal(set) var maximumNicknameLength: Int?
     public internal(set) var maximumTopicLength: Int?
     public internal(set) var maximumRealNameLength: Int?
+    public internal(set) var maximumMonitorTargets: Int?
     
     internal mutating func setServerInfo (parameters: [String]) {
         self.serverName = parameters[1]
@@ -67,11 +69,11 @@ public struct IRCServerInfo {
             }
             
             switch (supportKey, supportValue) {
-                case let ("NETWORK", value) where value != nil:
+                case let ("NETWORK", value):
                     self.networkName = value
                     break
                 
-                case let ("PREFIX", value) where value != nil:
+                case let ("PREFIX", value):
                     if let prefixString = value {
                         self.prefixMapping = IRCChannelUserMode.map(fromString: prefixString)
                     }
@@ -81,36 +83,41 @@ public struct IRCServerInfo {
                     self.supportsExtendedWhoQuery = true
                     break
                 
-                case let ("CASEMAPPING", value) where value != nil:
+                case let ("CASEMAPPING", value):
                     self.caseMapping = value
                     break
                 
-                case let ("AWAYLEN", value) where Int(value ?? "") != nil:
-                    self.maximumAwayMessageLength = Int(value ?? "")
+                case let ("AWAYLEN", value):
+                    self.maximumAwayMessageLength = Int.parse(value)
                     break
                 
-                case let ("CHANNELLEN", value) where Int(value ?? "") != nil:
-                    self.maximumChannelNameLength = Int(value ?? "")
+                case let ("CHANNELLEN", value):
+                    self.maximumChannelNameLength = Int.parse(value)
                     break
                 
-                case let ("QUITLEN", value) where Int(value ?? "") != nil:
-                    self.maximumQuitMessageLength = Int(value ?? "")
+                case let ("QUITLEN", value):
+                    self.maximumQuitMessageLength = Int.parse(value)
                     break
                 
-                case let ("KICKLEN", value) where Int(value ?? "") != nil:
-                    self.maximumKickMessageLength = Int(value ?? "")
+                case let ("KICKLEN", value):
+                    self.maximumKickMessageLength = Int.parse(value)
                     break
                 
-                case let ("NICKLEN", value) where Int(value ?? "") != nil:
-                    self.maximumNicknameLength = Int(value ?? "")
+                case let ("NICKLEN", value):
+                    self.maximumNicknameLength = Int.parse(value)
                     break
                 
-                case let ("TOPICLEN", value) where Int(value ?? "") != nil:
-                    self.maximumTopicLength = Int(value ?? "")
+                case let ("TOPICLEN", value):
+                    self.maximumTopicLength = Int.parse(value)
                     break
                 
-                case let ("NAMELEN", value) where Int(value ?? "") != nil:
-                    self.maximumRealNameLength = Int(value ?? "")
+                case let ("NAMELEN", value):
+                    self.maximumRealNameLength = Int.parse(value)
+                    break
+                
+                case let ("MONITOR", value):
+                    self.supportsMonitor = true
+                    self.maximumMonitorTargets = Int.parse(value)
                     break
                 
                 default:

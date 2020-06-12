@@ -14,24 +14,8 @@
 
 import Foundation
 
-public enum IRCCommand: String {
-    case PONG
-    case PASS
-    case USER
-    case NICK
-    case JOIN
-    case QUIT
-    case PART
-    case CAP
-    case AUTHENTICATE
-    case PRIVMSG
-    case NOTICE
-    case ISON
-    case INVITE
-    case KICK
-    case MODE
-    case TOPIC
-    case WHO
-    case SETNAME
-    case MONITOR
+extension Int {
+    static func parse (_ string: String?) -> Int? {
+        return Int(string ?? "")
+    }
 }

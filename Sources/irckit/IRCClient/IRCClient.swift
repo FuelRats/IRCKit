@@ -46,6 +46,28 @@ open class IRCClient: IRCConnectionDelegate {
     var activeAuthenticationMechanism: SASLMechanism? = nil
     var isExpectingWhoisResponse = false
     
+    public var monitor: Set<String> = [] {
+        didSet {
+            if self.connection.connected && self.serverInfo.supportsMonitor {
+                let addItems = self.monitor.subtracting(oldValue)
+                let removeItems = oldValue.symmetricDifference(self.monitor).subtracting(self.monitor)
+                
+                if self.monitor.count == 0 {
+                    self.sendMonitorClear()
+                    return
+                }
+                
+                if addItems.count > 0 {
+                    self.sendMonitor(addTargets: addItems)
+                }
+                
+                if removeItems.count > 0 {
+                    self.sendMonitor(removeTargets: removeItems)
+                }
+            }
+        }
+    }
+    
     public init (configuration: IRCClientConfiguration) {
         self.id = UUID()
         self.configuration = configuration

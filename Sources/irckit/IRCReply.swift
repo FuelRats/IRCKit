@@ -161,6 +161,12 @@ public enum IRCReply: String {
     case RPL_TIME = "391"
     case ERR_NOSUCHSERVER = "402"
     
+    case RPL_MONONLINE = "730"
+    case RPL_MONOFFLINE = "731"
+    case RPL_MONLIST = "732"
+    case RPL_ENDOFMONLIST = "733"
+    case ERR_MONLISTFULL = "734"
+    
     case RPL_LOGGEDIN = "900"
     case RPL_LOGGEDOUT = "901"
     case ERR_NICKLOCKED = "902"

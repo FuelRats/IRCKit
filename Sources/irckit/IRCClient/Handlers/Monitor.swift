@@ -14,24 +14,33 @@
 
 import Foundation
 
-public enum IRCCommand: String {
-    case PONG
-    case PASS
-    case USER
-    case NICK
-    case JOIN
-    case QUIT
-    case PART
-    case CAP
-    case AUTHENTICATE
-    case PRIVMSG
-    case NOTICE
-    case ISON
-    case INVITE
-    case KICK
-    case MODE
-    case TOPIC
-    case WHO
-    case SETNAME
-    case MONITOR
+extension IRCClient {
+    func handleMonitorOnlineEvent (message: IRCMessage) {
+        let targets = message.parameters.last?.components(separatedBy: ",") ?? []
+        for target in targets {
+            IRCUserOnlineNotification().encode(payload: target).post()
+        }
+    }
+    
+    func handleMonitorOfflineEvent (message: IRCMessage) {
+        let targets = message.parameters.last?.components(separatedBy: ",") ?? []
+        for target in targets {
+            IRCUserOfflineNotification().encode(payload: target).post()
+        }
+    }
+}
+
+
+public struct IRCUserOnlineNotification: NotificationDescriptor {
+    public init () {}
+
+    public typealias Payload = String
+    public let name = Notification.Name("IRCUserDidComeOnline")
+}
+
+public struct IRCUserOfflineNotification: NotificationDescriptor {
+    public init () {}
+
+    public typealias Payload = String
+    public let name = Notification.Name("IRCUserDidGoOffline")
 }
