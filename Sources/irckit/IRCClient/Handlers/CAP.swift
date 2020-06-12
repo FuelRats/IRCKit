@@ -36,7 +36,15 @@ extension IRCClient {
     }
     
     func capNegotiation (message: IRCMessage) {
-        let caps = IRCv3Capability.map(fromString: message.parameters[2])
+        let caps = IRCv3CapabilityInfo.from(string: message.parameters[2])
+        if let strictTransportInfo = caps.keyValuePairs(cap: .strictTransportSecurity) {
+            if let port = Int.parse(strictTransportInfo["port"]!) {
+                self.configuration.serverPort = port
+                self.configuration.prefersInsecureConnection = false
+                self.connection.disconnect()
+            }
+        }
+        
         let supportedCapabilities = Array(caps.keys)
         self.serverInfo.supportedIRCv3Capabilities = supportedCapabilities
         self.requestIRCv3Capabilities(capabilities: supportedCapabilities)
@@ -47,7 +55,7 @@ extension IRCClient {
         self.serverInfo.enabledIRCv3Capabilities = acceptedCapabilities
         
         
-        let caps = IRCv3Capability.map(fromString: message.parameters[2])
+        let caps = IRCv3CapabilityInfo.from(string: message.parameters[2])
         if let saslCap = caps[.sasl] as? [String] {
             let mechanisms = saslCap.compactMap({
                 SASLMechanism(rawValue: $0)
@@ -78,3 +86,4 @@ extension IRCClient {
         return self.serverInfo.enabledIRCv3Capabilities.contains(capability)
     }
 }
+

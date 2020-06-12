@@ -219,6 +219,8 @@ public enum IRCChannelMode: Character, Hashable {
     }
 }
 
+typealias IRCv3CapabilityInfo = [IRCv3Capability: [String]?]
+
 public enum IRCv3Capability: String {
     case extendedJoin = "extended-join"
     case hostnameChangeMessage = "chghost"
@@ -248,9 +250,11 @@ public enum IRCv3Capability: String {
             return IRCv3Capability(rawValue: capKey)
         })
     }
-    
-    internal static func map (fromString capString: String) -> [IRCv3Capability:[String]?] {
-        let availableCapabilities = capString.components(separatedBy: .whitespaces)
+}
+
+extension IRCv3CapabilityInfo {
+    static func from (string: String) -> IRCv3CapabilityInfo {
+        let availableCapabilities = string.components(separatedBy: .whitespaces)
         return availableCapabilities.reduce([:], { (acc: [IRCv3Capability: [String]?], capItemString: String) -> [IRCv3Capability: [String]?] in
             var acc = acc
             let capComponents = capItemString.components(separatedBy: "=")
@@ -265,8 +269,24 @@ public enum IRCv3Capability: String {
             acc[capability] = values
             return acc
         })
+        
+    }
+    
+    func keyValuePairs (cap: IRCv3Capability) -> [String: String?]? {
+        guard let capInfo = self[cap] else {
+            return nil
+        }
+        
+        return capInfo?.reduce([:], { (acc: [String: String?], item: String) -> [String: String?] in
+            var acc = acc
+            let comps = item.components(separatedBy: "=")
+            acc[comps[0]] = comps.count > 1 ? comps[1] : nil
+            
+            return acc
+        })
     }
 }
+
 
 public enum SASLMechanism: String {
     case external = "EXTERNAL"
