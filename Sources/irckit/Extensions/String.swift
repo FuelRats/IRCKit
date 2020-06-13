@@ -14,7 +14,25 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 import Foundation
 
+extension Array where Element == String {
+    func keyValuePairs () -> [String: String?] {
+        return self.reduce([:], { (acc: [String: String?], token: String) -> [String: String?] in
+            var acc = acc
+            let comps = token.components(separatedBy: "=")
+            acc[comps[0]] = comps.count > 1 ? comps[1] : nil
+            
+            return acc
+        })
+    }
+}
+
 extension String {
+    func keyValuePairs (separatedBy separator: String) -> [String: String?] {
+        let tokens = self.components(separatedBy: separator)
+        
+        return tokens.keyValuePairs()
+    }
+    
     static func random (length: Int = 20) -> String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var randomString: String = ""
@@ -25,4 +43,6 @@ extension String {
         }
         return randomString
     }
+    
 }
+

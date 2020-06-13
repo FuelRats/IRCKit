@@ -60,14 +60,7 @@ public struct IRCServerInfo {
         supportEntries.removeFirst()
         supportEntries.removeLast()
         
-        for supportEntry in supportEntries {
-            let supportComponents = supportEntry.components(separatedBy: "=")
-            let supportKey = supportComponents[0]
-            var supportValue: String? = nil
-            if supportComponents.count > 1 {
-                supportValue = supportComponents[1]
-            }
-            
+        for (supportKey, supportValue) in supportEntries.keyValuePairs() {
             switch (supportKey, supportValue) {
                 case let ("NETWORK", value):
                     self.networkName = value
@@ -241,35 +234,28 @@ public enum IRCv3Capability: String {
     case strictTransportSecurity = "sts"
     
     internal static func list (fromString capString: String) -> [IRCv3Capability] {
-        let availableCapabilities = capString.components(separatedBy: .whitespaces)
-        return availableCapabilities.compactMap({
-            capItemString in
-            let capComponents = capItemString.components(separatedBy: "=")
-            let capKey = capComponents[0]
-            
-            return IRCv3Capability(rawValue: capKey)
+        let capStrings = Array(capString.keyValuePairs(separatedBy: " ").keys)
+        return capStrings.compactMap({ capItem in
+            return IRCv3Capability(rawValue: capItem)
         })
     }
 }
 
 extension IRCv3CapabilityInfo {
     static func from (string: String) -> IRCv3CapabilityInfo {
-        let availableCapabilities = string.components(separatedBy: .whitespaces)
-        return availableCapabilities.reduce([:], { (acc: [IRCv3Capability: [String]?], capItemString: String) -> [IRCv3Capability: [String]?] in
+        let availableCapabilities = string.keyValuePairs(separatedBy: " ")
+        return availableCapabilities.reduce([:], { (acc: [IRCv3Capability: [String]?], kvPair: (String, String?)) -> [IRCv3Capability: [String]?] in
             var acc = acc
-            let capComponents = capItemString.components(separatedBy: "=")
-            let capKey = capComponents[0]
-            
-            guard let capability = IRCv3Capability(rawValue: capKey) else {
+            let (key, val) = kvPair
+            guard let capability = IRCv3Capability(rawValue: key) else {
                 return acc
             }
             
-            let values = capComponents.count > 1 ? capComponents[1].components(separatedBy: ",") : nil
-            
+            let values = val?.components(separatedBy: ",")
             acc[capability] = values
+            
             return acc
         })
-        
     }
     
     func keyValuePairs (cap: IRCv3Capability) -> [String: String?]? {
@@ -277,13 +263,7 @@ extension IRCv3CapabilityInfo {
             return nil
         }
         
-        return capInfo?.reduce([:], { (acc: [String: String?], item: String) -> [String: String?] in
-            var acc = acc
-            let comps = item.components(separatedBy: "=")
-            acc[comps[0]] = comps.count > 1 ? comps[1] : nil
-            
-            return acc
-        })
+        return capInfo?.keyValuePairs()
     }
 }
 
