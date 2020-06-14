@@ -68,11 +68,6 @@ extension IRCClient {
         self.send(command: .CAP, parameters: ["REQ", capString])
     }
     
-    func initiateAuthentication (mechanism: SASLMechanism) {
-        self.activeAuthenticationMechanism = mechanism
-        self.send(command: .AUTHENTICATE, parameters: [mechanism.rawValue])
-    }
-    
     func sendAuthenticate (message: String) {
         self.send(command: .AUTHENTICATE, parameters: [message])
     }

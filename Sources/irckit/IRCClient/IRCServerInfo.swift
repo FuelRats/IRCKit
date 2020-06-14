@@ -32,7 +32,7 @@ public struct IRCServerInfo {
     public internal(set) var supportedChannelTypes: [IRCChannelType]?
     public internal(set) var supportedIRCv3Capabilities: [IRCv3Capability] = []
     public internal(set) var enabledIRCv3Capabilities: [IRCv3Capability] = []
-    public internal(set) var supportedSASLMechanisms: [SASLMechanism] = []
+    public internal(set) var supportedSASLMechanisms: [SASLHandler.Type] = []
     public internal(set) var supportsExtendedWhoQuery = false
     public internal(set) var supportsMonitor = false
     
@@ -44,6 +44,12 @@ public struct IRCServerInfo {
     public internal(set) var maximumTopicLength: Int?
     public internal(set) var maximumRealNameLength: Int?
     public internal(set) var maximumMonitorTargets: Int?
+    
+    func supportsSASLMechanism (handler: SASLHandler.Type) -> Bool {
+        return self.supportedSASLMechanisms.contains(where: { (supportedHandler: SASLHandler.Type) -> Bool in
+            return supportedHandler == handler
+        })
+    }
     
     internal mutating func setServerInfo (parameters: [String]) {
         self.serverName = parameters[1]
@@ -265,13 +271,6 @@ extension IRCv3CapabilityInfo {
         
         return capInfo?.keyValuePairs()
     }
-}
-
-
-public enum SASLMechanism: String {
-    case external = "EXTERNAL"
-    case plainText = "PLAIN"
-    case sha256 = "SCRAM-SHA-256"
 }
 
 public enum IRCChannelType {

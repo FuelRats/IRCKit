@@ -13,36 +13,29 @@
  */
 
 import Foundation
+import CryptoSwift
+
+public protocol SASLHandler {
+    static var mechanism: String { get }
+    
+    init (client: IRCClient)
+    
+    func handleResponse (message: IRCMessage)
+}
+
+extension SASLHandler {
+    static var supportedHandlers: [SASLHandler.Type] {
+        return [PlainTextSASLHandler.self, ExternalSASLHandler.self, Sha256SASLHandler.self]
+    }
+}
 
 extension IRCClient {
     func handleAuthenticationResponse (message: IRCMessage) {
-        if message.parameters[0] == "+" {
-            switch self.activeAuthenticationMechanism {
-                case .external:
-                    self.sendAuthenticate(message: "+")
-                    break
-                
-                case .plainText:
-                    guard let password = self.configuration.authenticationPassword else {
-                        self.sendAuthenticate(message: "*")
-                        return
-                    }
-                    
-                    let username = configuration.authenticationUsername ?? configuration.username
-                    
-                    guard let encodedPassword = "\(username)\0\(username)\0\(password)".data(using: .utf8)?.base64EncodedString() else {
-                        self.sendAuthenticate(message: "*")
-                        return
-                    }
-                    
-                    self.sendAuthenticate(message: encodedPassword)
-                    break
-                
-                default:
-                    self.sendAuthenticate(message: "*")
-                    break
-            }
-        }
+        self.activeAuthenticationHandler?.handleResponse(message: message)
+    }
+    
+    func abortSaslAuthentication () {
+        self.sendAuthenticate(message: "*")
     }
     
     func handleAuthenticationCompleted (message: IRCMessage) {
@@ -64,6 +57,11 @@ extension IRCClient {
         
     }
 }
+
+func pbkdf2 (password: String, salt: String, iteration: Int) -> Array<UInt8>? {
+    return try? PKCS5.PBKDF2(password: Array(password.utf8), salt: Array(salt.utf8), iterations: iteration, variant: .sha256).calculate()
+}
+
 
 public struct IRCUserAccountChangeNotification: NotificationDescriptor {
     public init () {}

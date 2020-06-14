@@ -57,21 +57,25 @@ extension IRCClient {
         
         let caps = IRCv3CapabilityInfo.from(string: message.parameters[2])
         if let saslCap = caps[.sasl] as? [String] {
-            let mechanisms = saslCap.compactMap({
-                SASLMechanism(rawValue: $0)
+            let mechanisms = saslCap.compactMap({ (serverMechanism: String) -> SASLHandler.Type? in
+                return IRCClient.supportedHandlers.first(where: { (clientHandler: SASLHandler.Type) -> Bool in
+                    clientHandler.mechanism == serverMechanism
+                })
             })
             self.serverInfo.supportedSASLMechanisms = mechanisms
         } else if self.hasIRCv3Capability(.sasl) {
             // This server does not tell us what SASL mechanisms are supported, we will assume it supports PLAIN and EXTERNAL, and pray.
-            self.serverInfo.supportedSASLMechanisms = [.plainText, .external]
+            self.serverInfo.supportedSASLMechanisms = [PlainTextSASLHandler.self, ExternalSASLHandler.self]
         }
         
         if self.serverInfo.enabledIRCv3Capabilities.contains(.sasl) {
-            if self.configuration.clientCertificatePath != nil && self.serverInfo.supportedSASLMechanisms.contains(.external) {
-                self.initiateAuthentication(mechanism: .external)
+            if self.configuration.clientCertificatePath != nil && self.serverInfo.supportsSASLMechanism(handler: ExternalSASLHandler.self) {
+                self.activeAuthenticationHandler = ExternalSASLHandler(client: self)
                 return
-            } else if self.configuration.authenticationPassword != nil && self.serverInfo.supportedSASLMechanisms.contains(.plainText) {
-                self.initiateAuthentication(mechanism: .plainText)
+            } else if self.configuration.authenticationPassword != nil && self.serverInfo.supportsSASLMechanism(handler: Sha256SASLHandler.self) {
+                self.activeAuthenticationHandler = Sha256SASLHandler(client: self)
+            } else if self.configuration.authenticationPassword != nil && self.serverInfo.supportsSASLMechanism(handler: PlainTextSASLHandler.self) {
+                self.activeAuthenticationHandler = PlainTextSASLHandler(client: self)
                 return
             }
         }

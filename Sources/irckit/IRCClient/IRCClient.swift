@@ -43,7 +43,10 @@ open class IRCClient: IRCConnectionDelegate {
     }
     public private(set) var currentNick: String
     public private(set) var connectCommands: [ConnectCommand] = []
-    var activeAuthenticationMechanism: SASLMechanism? = nil
+    
+    static var supportedHandlers: [SASLHandler.Type] = [PlainTextSASLHandler.self, ExternalSASLHandler.self, Sha256SASLHandler.self]
+    var activeAuthenticationHandler: SASLHandler? = nil
+    
     var isExpectingWhoisResponse = false
     
     public var monitor: Set<String> = [] {
