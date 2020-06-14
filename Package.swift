@@ -16,7 +16,8 @@ let package = Package(
         // .package(url: /* package url */, from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio.git", from: Version(2, 14, 0)),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: Version (2, 6, 2)),
-        .package(url: "https://github.com/apple/swift-nio-extras.git", from: Version(1, 4, 0))
+        .package(url: "https://github.com/apple/swift-nio-extras.git", from: Version(1, 4, 0)),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: Version(1, 3, 0))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -26,7 +27,8 @@ let package = Package(
             dependencies: [
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
-                .product(name: "NIOExtras", package: "swift-nio-extras")
+                .product(name: "NIOExtras", package: "swift-nio-extras"),
+                "CryptoSwift"
             ]),
         .testTarget(
             name: "IRCKitTests",
