@@ -30,6 +30,19 @@ extension SASLHandler {
 }
 
 extension IRCClient {
+    func saslNegotiation () -> Bool {
+        if self.configuration.clientCertificatePath != nil && self.serverInfo.supportsSASLMechanism(handler: ExternalSASLHandler.self) {
+            self.activeAuthenticationHandler = ExternalSASLHandler(client: self)
+        } else if self.configuration.authenticationPassword != nil && self.serverInfo.supportsSASLMechanism(handler: Sha256SASLHandler.self) {
+            self.activeAuthenticationHandler = Sha256SASLHandler(client: self)
+        } else if self.configuration.authenticationPassword != nil && self.serverInfo.supportsSASLMechanism(handler: PlainTextSASLHandler.self) {
+            self.activeAuthenticationHandler = PlainTextSASLHandler(client: self)
+        } else {
+            return false
+        }
+        return true
+    }
+    
     func handleAuthenticationResponse (message: IRCMessage) {
         self.activeAuthenticationHandler?.handleResponse(message: message)
     }
@@ -57,11 +70,6 @@ extension IRCClient {
         
     }
 }
-
-func pbkdf2 (password: String, salt: String, iteration: Int) -> Array<UInt8>? {
-    return try? PKCS5.PBKDF2(password: Array(password.utf8), salt: Array(salt.utf8), iterations: iteration, variant: .sha256).calculate()
-}
-
 
 public struct IRCUserAccountChangeNotification: NotificationDescriptor {
     public init () {}

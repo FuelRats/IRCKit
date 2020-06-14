@@ -137,3 +137,8 @@ class Sha256SASLHandler: SASLHandler {
         }
     }
 }
+
+
+fileprivate func pbkdf2 (password: String, salt: String, iteration: Int) -> Array<UInt8>? {
+    return try? PKCS5.PBKDF2(password: Array(password.utf8), salt: Array(salt.utf8), iterations: iteration, variant: .sha256).calculate()
+}

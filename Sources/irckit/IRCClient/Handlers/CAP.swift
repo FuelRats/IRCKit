@@ -69,13 +69,7 @@ extension IRCClient {
         }
         
         if self.serverInfo.enabledIRCv3Capabilities.contains(.sasl) {
-            if self.configuration.clientCertificatePath != nil && self.serverInfo.supportsSASLMechanism(handler: ExternalSASLHandler.self) {
-                self.activeAuthenticationHandler = ExternalSASLHandler(client: self)
-                return
-            } else if self.configuration.authenticationPassword != nil && self.serverInfo.supportsSASLMechanism(handler: Sha256SASLHandler.self) {
-                self.activeAuthenticationHandler = Sha256SASLHandler(client: self)
-            } else if self.configuration.authenticationPassword != nil && self.serverInfo.supportsSASLMechanism(handler: PlainTextSASLHandler.self) {
-                self.activeAuthenticationHandler = PlainTextSASLHandler(client: self)
+            if (saslNegotiation() == true) {
                 return
             }
         }
