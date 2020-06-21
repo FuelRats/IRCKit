@@ -80,7 +80,7 @@ public struct IRCUserChangedNickNotification: NotificationDescriptor {
     
     public struct IRCNickChange: IRCNotification {
         public let id: String
-        public let message: IRCMessage
+        public let raw: IRCMessage
         public let newNick: String
     }
 

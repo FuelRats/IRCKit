@@ -27,7 +27,7 @@ extension IRCClient {
         }
     }
     
-    func sendJoin (channels: [String]) {
+    public func sendJoin (channels: [String]) {
         var channels = channels
         while channels.count > 0 {
             let chunkSize = min(channels.count, 10)
@@ -37,27 +37,27 @@ extension IRCClient {
         }
     }
     
-    func sendJoin (channelName: String) {
+    public func sendJoin (channelName: String) {
         self.send(command: .JOIN, parameters: [channelName])
     }
     
-    func sendNicknameChange (nickname: String) {
+    public func sendNicknameChange (nickname: String) {
         self.send(command: .NICK, parameters: [nickname])
     }
     
-    func sendPart (channel: IRCChannel, message: String = "") {
+    public func sendPart (channel: IRCChannel, message: String = "") {
         self.sendPart(channelName: channel.name)
     }
     
-    func sendPart (channelName: String, message: String = "") {
+    public func sendPart (channelName: String, message: String = "") {
         self.send(command: .PART, parameters: [channelName, message])
     }
     
-    func sendQuit (message: String = "") {
+    public func sendQuit (message: String = "") {
         self.send(command: .QUIT, parameters: [message])
     }
     
-    func requestIRCv3Capabilities (capabilities: [IRCv3Capability]) {
+    public func requestIRCv3Capabilities (capabilities: [IRCv3Capability]) {
         guard capabilities.count > 0 else {
             return
         }
@@ -68,43 +68,47 @@ extension IRCClient {
         self.send(command: .CAP, parameters: ["REQ", capString])
     }
     
-    func sendAuthenticate (message: String) {
+    public func sendAuthenticate (message: String) {
         self.send(command: .AUTHENTICATE, parameters: [message])
     }
     
-    func sendMessage (toChannel channel: IRCChannel, contents: String) {
+    public func sendMessage (toChannel channel: IRCChannel, contents: String) {
+        self.sendMessage(toChannelName: channel.name, contents: contents)
+    }
+    
+    public func sendMessage (toChannelName channelName: String, contents: String) {
         if self.hasIRCv3Capability(.labeledResponses) {
-            self.send(command: .PRIVMSG, parameters: [channel.name, contents])
+            self.send(command: .PRIVMSG, parameters: [channelName, contents])
         } else {
-            self.send(command: .PRIVMSG, parameters: [channel.name, contents])
+            self.send(command: .PRIVMSG, parameters: [channelName, contents])
         }
     }
     
-    func sendActionMessage(toChannel channel: IRCChannel, contents: String) {
+    public func sendActionMessage(toChannel channel: IRCChannel, contents: String) {
         self.send(command: .PRIVMSG, parameters: [channel.name, "\u{001}ACTION \(contents)\u{001}"])
     }
     
-    func sendCTCPRequest(toChannel channel: IRCChannel, contents: String) {
+    public func sendCTCPRequest(toChannel channel: IRCChannel, contents: String) {
         self.send(command: .PRIVMSG, parameters: [channel.name, "\u{001}\(contents)\u{001}"])
     }
     
-    func sendMonitor (addTargets targets: Set<String>) {
+    public func sendMonitor (addTargets targets: Set<String>) {
         self.send(command: .MONITOR, parameters: "+", targets.joined(separator: ","))
     }
     
-    func sendMonitor (removeTargets targets: Set<String>) {
+    public func sendMonitor (removeTargets targets: Set<String>) {
         self.send(command: .MONITOR, parameters: "-", targets.joined(separator: ","))
     }
     
-    func sendMonitorClear () {
+   public func sendMonitorClear () {
         self.send(command: .MONITOR, parameters: "C")
     }
     
-    func sendMonitorListRequest () {
+    public func sendMonitorListRequest () {
         self.send(command: .MONITOR, parameters: "L")
     }
     
-    func sendMonitorStatusRequest () {
+    public func sendMonitorStatusRequest () {
         self.send(command: .MONITOR, parameters: "S")
     }
 }
