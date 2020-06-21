@@ -85,7 +85,11 @@ extension IRCClient {
     }
     
     public func sendActionMessage(toChannel channel: IRCChannel, contents: String) {
-        self.send(command: .PRIVMSG, parameters: [channel.name, "\u{001}ACTION \(contents)\u{001}"])
+        self.sendActionMessage(toChannelName: channel.name, contents: contents)
+    }
+    
+    public func sendActionMessage(toChannelName channelName: String, contents: String) {
+        self.send(command: .PRIVMSG, parameters: [channelName, "\u{001}ACTION \(contents)\u{001}"])
     }
     
     public func sendCTCPRequest(toChannel channel: IRCChannel, contents: String) {
