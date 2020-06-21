@@ -23,6 +23,8 @@ extension IRCClient {
         for channel in self.channels {
             channel.remove(sender: sender)
         }
+        
+        IRCUserQuitNotification().encode(payload: message).post()
     }
     
     func handleNickChangeServerEvent (message: IRCMessage) {
@@ -37,6 +39,12 @@ extension IRCClient {
                 member.nickname = newNick
             }
         }
+        
+        IRCUserChangedNickNotification().encode(payload: IRCUserChangedNickNotification.IRCNickChange(
+            id: message.id,
+            raw: message,
+            newNick: newNick
+        )).post()
     }
     
     func handleAwayChangeEvent (message: IRCMessage) {
