@@ -52,7 +52,7 @@ open class IRCClient: IRCConnectionDelegate {
         }
     }
     public private(set) var currentNick: String
-    public private(set) var connectCommands: [ConnectCommand] = []
+    public var connectCommands: [ConnectCommand] = []
 
     static var supportedHandlers: [SASLHandler.Type] = [
         PlainTextSASLHandler.self,

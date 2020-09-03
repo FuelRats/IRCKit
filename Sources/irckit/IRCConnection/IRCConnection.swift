@@ -76,20 +76,23 @@ public class IRCConnection: ChannelInboundHandler {
         )
         let sslContext = try NIOSSLContext(configuration: sslConfiguration)
 
-        self.floodTimer = group.next().scheduleRepeatedTask(
-            initialDelay: .seconds(Int64(configuration.floodControlDelayTimerInterval)),
-            delay: .seconds(Int64(configuration.floodControlDelayTimerInterval)), { _ in
-                self.floodControlMessages = 0
+        if let interval = self.configuration.floodControlDelayTimerInterval {
+            self.floodTimer = group.next().scheduleRepeatedTask(
+                initialDelay: .seconds(Int64(interval)),
+                delay: .seconds(Int64(interval)), { _ in
+                    self.floodControlMessages = 0
 
-                while
-                    let message = self.sendQueue.first,
-                    self.floodControlMessages < self.configuration.floodControlMaximumMessages
-                {
-                    self.sendDirectly(message: message)
-                    self.sendQueue.removeFirst()
+                    while
+                        let message = self.sendQueue.first,
+                        self.floodControlMessages < self.configuration.floodControlMaximumMessages ?? 5
+                    {
+                        self.sendDirectly(message: message)
+                        self.sendQueue.removeFirst()
+                    }
                 }
-            }
-        )
+            )
+        }
+
 
         self.bootstrap = ClientBootstrap(group: group)
             .channelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
@@ -212,7 +215,14 @@ public class IRCConnection: ChannelInboundHandler {
     }
 
     func send (message: String, bypassingQueue: Bool = false) {
-        if self.floodControlMessages < self.configuration.floodControlMaximumMessages && self.sendQueue.count == 0 {
+        guard configuration.floodControlDelayTimerInterval != nil else {
+            self.sendDirectly(message: message)
+            return
+        }
+        if
+            self.floodControlMessages < self.configuration.floodControlMaximumMessages ?? 5
+                && self.sendQueue.count == 0
+        {
             self.sendDirectly(message: message)
             return
         }

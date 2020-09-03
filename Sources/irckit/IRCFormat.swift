@@ -26,7 +26,7 @@ import Foundation
 
 public struct IRCFormat {
     public static func bold (_ string: String) -> String {
-        return "\002\(string)\002"
+        return "\u{002}\(string)\u{002}"
     }
 
     public static func color(_ color: IRCColor, _ string: String) -> String {

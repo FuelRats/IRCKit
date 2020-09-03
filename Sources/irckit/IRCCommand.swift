@@ -44,4 +44,5 @@ public enum IRCCommand: String {
     case WHO
     case SETNAME
     case MONITOR
+    case OPER
 }

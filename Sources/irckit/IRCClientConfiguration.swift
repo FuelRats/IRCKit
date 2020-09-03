@@ -55,8 +55,8 @@ public struct IRCClientConfiguration: Codable {
     public var authenticationUsername: String?
     public var authenticationPassword: String?
 
-    public var floodControlDelayTimerInterval = 3
-    public var floodControlMaximumMessages = 5
+    public var floodControlDelayTimerInterval: Int? = 3
+    public var floodControlMaximumMessages: Int? = 5
 
     public var prefersInsecureConnection = false
     public var chiperSuite: String?

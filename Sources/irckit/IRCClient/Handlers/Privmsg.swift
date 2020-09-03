@@ -35,29 +35,6 @@ public struct IRCPrivateMessage: IRCNotification {
     public func reply (message: String) {
         client.sendMessage(toChannel: destination, contents: message)
     }
-
-    public func reply (list: [String], separator: String, heading: String = "") {
-        let messages = list.reduce([String](), { (acc: [String], entry: String) -> [String] in
-            var acc = acc
-            var entry = entry
-
-            if acc.last == nil {
-                entry = heading + entry
-            }
-
-            if acc.last == nil || acc.last!.count + separator.count + list.count > 400 {
-                acc.append(entry)
-                return acc
-            }
-
-            acc[acc.count - 1] = acc[acc.count - 1] + separator + entry
-            return acc
-        })
-
-        for message in messages {
-            self.reply(message: message)
-        }
-    }
 }
 
 extension IRCClient {
