@@ -81,13 +81,9 @@ extension String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var randomString: String = ""
 
-        #if os(Linux)
-        srand(UInt32(time(nil)))
-        #endif
-
         for _ in 0..<length {
             #if os(Linux)
-            let randomValue = Int(random() % base.count) + 1
+            let randomValue = Int.random(in: 0..<len)
             #else
             let randomValue = arc4random_uniform(UInt32(base.count))
             #endif
