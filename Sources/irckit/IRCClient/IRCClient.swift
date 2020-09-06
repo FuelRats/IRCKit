@@ -35,20 +35,26 @@ open class IRCClient: IRCConnectionDelegate {
     public var configuration: IRCClientConfiguration
     public internal(set) var serverInfo = IRCServerInfo() {
         willSet {
+            #if os(Linux)
+            #else
             if #available(iOS 13, macOS 10.15, *) {
                 DispatchQueue.main.async {
                     self.objectWillChange.send()
                 }
             }
+            #endif
         }
     }
     public internal(set) var channels: [IRCChannel] = [] {
         willSet {
+            #if os(Linux)
+            #else
             if #available(iOS 13, macOS 10.15, *) {
                 DispatchQueue.main.async {
                     self.objectWillChange.send()
                 }
             }
+            #endif
         }
     }
     public private(set) var currentNick: String
@@ -255,7 +261,11 @@ open class IRCClient: IRCConnectionDelegate {
     }
 }
 
+
+#if os(Linux)
+#else
 @available(iOS 13, macOS 10.15, *)
 extension IRCClient: ObservableObject {
 
 }
+#endif
