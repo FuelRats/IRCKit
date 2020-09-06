@@ -83,7 +83,7 @@ extension String {
 
         for _ in 0..<length {
             #if os(Linux)
-            let randomValue = Int.random(in: 0..<len)
+            let randomValue = Int.random(in: 0..<length)
             #else
             let randomValue = arc4random_uniform(UInt32(base.count))
             #endif
