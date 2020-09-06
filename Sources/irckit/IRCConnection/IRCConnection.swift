@@ -174,7 +174,7 @@ public class IRCConnection: ChannelInboundHandler {
     }
 
     public func errorCaught (context: ChannelHandlerContext, error: Error) {
-        print("Connection closed due to an error")
+        print("Connection closed due to an error: \(error.localizedDescription)")
         context.close(promise: nil)
     }
 
