@@ -68,7 +68,7 @@ public class IRCConnection: ChannelInboundHandler {
         let sslConfiguration = TLSConfiguration.forClient(
             cipherSuites: configuration.chiperSuite ?? TLSConfiguration.clientDefault.cipherSuites,
             minimumTLSVersion: .tlsv11,
-            maximumTLSVersion: nil,
+            maximumTLSVersion: .tlsv12,
             certificateVerification: verification,
             trustRoots: .default,
             certificateChain: certificateChain,
