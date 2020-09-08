@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "DefaultCodable",
+        "repositoryURL": "https://github.com/gonzalezreal/DefaultCodable.git",
+        "state": {
+          "branch": null,
+          "revision": "7417376ad1228c3ac5c2988770c9fe97ca667a57",
+          "version": "1.2.0"
+        }
+      },
+      {
         "package": "swift-nio",
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
