@@ -121,7 +121,7 @@ extension IRCClient {
             id: message.label,
             user: user,
             channel: channel,
-            message: message.parameters[1],
+            message: message.parameters[safe: 0],
             event: .Part,
             raw: message
         )).post()
@@ -150,7 +150,7 @@ extension IRCClient {
             sender: sender,
             channel: channel,
             kickedUser: kickUser,
-            message: message.parameters[2],
+            message: message.parameters[safe: 2],
             raw: message
         )).post()
     }
