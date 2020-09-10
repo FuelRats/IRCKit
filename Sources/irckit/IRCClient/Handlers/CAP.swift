@@ -42,10 +42,11 @@ extension IRCClient {
     func capNegotiation (message: IRCMessage) {
         let caps = IRCv3CapabilityInfo.from(string: message.parameters[2])
         if let strictTransportInfo = caps.keyValuePairs(cap: .strictTransportSecurity) {
-            if let port = Int.parse(strictTransportInfo["port"]!) {
+            if let port = Int.parse(strictTransportInfo["port"]!), port != self.configuration.serverPort {
                 self.configuration.serverPort = port
                 self.configuration.prefersInsecureConnection = false
                 self.connection.disconnect()
+                self.connection.connect()
             }
         }
 

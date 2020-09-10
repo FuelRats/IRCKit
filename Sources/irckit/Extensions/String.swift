@@ -28,7 +28,7 @@ extension Array where Element == String {
         return self.reduce([:], { (acc: [String: String?], token: String) -> [String: String?] in
             var acc = acc
             let comps = token.components(separatedBy: "=")
-            acc[comps[0]] = comps.count > 1 ? comps[1] : nil
+            acc[comps[0]] = comps[safe: 1]
 
             return acc
         })
