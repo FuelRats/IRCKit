@@ -42,6 +42,7 @@ public enum IRCReply: String {
     case TOPIC
     case AUTHENTICATE
     case SETNAME
+    case CHGHOST
 
     case RPL_WELCOME = "001"
     case RPL_YOURHOST = "002"

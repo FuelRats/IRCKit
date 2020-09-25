@@ -207,6 +207,9 @@ open class IRCClient: IRCConnectionDelegate {
             case .TOPIC:
                 handleChannelTopicEvent(message: message)
 
+            case .CHGHOST:
+                handleHostnameChange(message: message)
+
             default:
                 break
         }

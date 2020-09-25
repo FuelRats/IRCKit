@@ -84,6 +84,24 @@ extension IRCClient {
             }
         }
     }
+
+    func handleHostnameChange (message: IRCMessage) {
+        guard let sender = message.sender else {
+            return
+        }
+
+        let newUser = message.parameters[0]
+        let newHost = message.parameters[1]
+
+        for channel in self.channels {
+            if let member = channel.member(fromSender: sender) {
+                member.username = newUser
+                member.hostmask = newHost
+            }
+        }
+
+        IRCUserHostChangeNotification().encode(payload: message).post()
+    }
 }
 
 public struct IRCUserQuitNotification: NotificationDescriptor {
@@ -104,4 +122,11 @@ public struct IRCUserChangedNickNotification: NotificationDescriptor {
 
     public typealias Payload = IRCNickChange
     public let name = Notification.Name("IRCDidChangeNick")
+}
+
+public struct IRCUserHostChangeNotification: NotificationDescriptor {
+    public init () {}
+
+    public typealias Payload = IRCMessage
+    public let name = Notification.Name("IRCDidChangeHostname")
 }
