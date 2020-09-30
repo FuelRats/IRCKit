@@ -93,7 +93,7 @@ extension IRCClient {
 
         var realNameIndex = 7
         if message.parameters.count > 8 {
-            let account = message.parameters[7] == "0" ? nil : message.parameters[5]
+            let account = message.parameters[7] == "0" ? nil : message.parameters[7]
             user.account = account
 
             realNameIndex = 8
