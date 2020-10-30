@@ -207,7 +207,7 @@ public enum IRCChannelMode: Character, Hashable {
                     modeArgs.removeFirst()
 
                 default:
-                    modeMap[mode] = nil
+                    modeMap.updateValue(nil, forKey: mode)
             }
         }
 
