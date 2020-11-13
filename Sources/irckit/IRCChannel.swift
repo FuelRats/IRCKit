@@ -112,8 +112,9 @@ public class IRCChannel: Equatable {
     }
 
     public func member (named nickname: String) -> IRCUser? {
+        let nickname = nickname.lowercased()
         return members.first(where: {
-            $0.nickname == nickname
+            $0.nickname.lowercased() == nickname
         })
     }
 
