@@ -57,7 +57,8 @@ open class IRCClient: IRCConnectionDelegate {
             #endif
         }
     }
-    public private(set) var currentNick: String
+    public internal(set) var currentNick: String
+    public internal(set) var currentSender: IRCSender?
     public var connectCommands: [ConnectCommand] = []
 
     static var supportedHandlers: [SASLHandler.Type] = [
@@ -131,6 +132,12 @@ open class IRCClient: IRCConnectionDelegate {
                 self.send(command: .PONG, parameters: [":\(message.parameters[0])"])
 
             case .RPL_WELCOME:
+                if
+                    let senderString = message.parameters.last?.components(separatedBy: " ").last,
+                    let sender = IRCSender(fromString: senderString)
+                {
+                    self.currentSender = sender
+                }
                 if self.configuration.channels.count > 0 {
                     self.sendJoin(channels: self.configuration.channels)
                 }
@@ -209,6 +216,9 @@ open class IRCClient: IRCConnectionDelegate {
 
             case .CHGHOST:
                 handleHostnameChange(message: message)
+
+            case .RPL_HOSTISHIDDEN:
+                handleHostHidden(message: message)
 
             default:
                 break

@@ -170,6 +170,7 @@ public enum IRCReply: String {
     case RPL_ALIST = "388"
     case RPL_ENDOFALIST = "389"
     case RPL_TIME = "391"
+    case RPL_HOSTISHIDDEN = "396"
     case ERR_NOSUCHSERVER = "402"
 
     case RPL_MONONLINE = "730"

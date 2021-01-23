@@ -68,7 +68,7 @@ extension IRCClient {
         self.send(command: .CAP, parameters: ["END"])
     }
 
-    func handleAccountChangeServerEvent(message: IRCMessage) {
+    func handleAccountChangeServerEvent (message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }

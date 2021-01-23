@@ -25,10 +25,10 @@
 import Foundation
 
 public struct IRCSender {
-    public let nickname: String
-    public let username: String?
-    public let hostmask: String?
-    public let address: String?
+    public var nickname: String
+    public var username: String?
+    public var hostmask: String?
+    public var address: String?
     public let isServer: Bool
 
     init? (fromString senderString: String) {

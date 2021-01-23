@@ -44,6 +44,13 @@ extension IRCClient {
 
         let newNick = message.parameters[0]
 
+        if sender.nickname == self.currentNick {
+            var newSender = sender
+            newSender.nickname = newNick
+            self.currentNick = newNick
+            self.currentSender = newSender
+        }
+
         for channel in self.channels {
             if let member = channel.member(fromSender: sender) {
                 member.nickname = newNick
@@ -93,6 +100,12 @@ extension IRCClient {
         let newUser = message.parameters[0]
         let newHost = message.parameters[1]
 
+        if sender.nickname == self.currentNick {
+            var newSender = sender
+            newSender.username = newUser
+            newSender.hostmask = newHost
+        }
+
         for channel in self.channels {
             if let member = channel.member(fromSender: sender) {
                 member.username = newUser
@@ -101,6 +114,13 @@ extension IRCClient {
         }
 
         IRCUserHostChangeNotification().encode(payload: message).post()
+    }
+
+    func handleHostHidden (message: IRCMessage) {
+        if message.parameters.count > 1 {
+            let newHost = message.parameters[1]
+            self.currentSender?.address = newHost
+        }
     }
 }
 
