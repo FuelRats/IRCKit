@@ -119,7 +119,7 @@ extension IRCClient {
     func handleHostHidden (message: IRCMessage) {
         if message.parameters.count > 1 {
             let newHost = message.parameters[1]
-            self.currentSender?.address = newHost
+            self.currentSender?.hostmask = newHost
         }
     }
 }

@@ -24,7 +24,7 @@
 
 import Foundation
 
-public struct IRCSender {
+public struct IRCSender: CustomStringConvertible {
     public var nickname: String
     public var username: String?
     public var hostmask: String?
@@ -51,6 +51,14 @@ public struct IRCSender {
             self.address = senderString
             self.isServer = true
         }
+    }
+
+
+    public var description: String {
+        if let username = username, let hostmask = hostmask {
+            return "\(self.nickname)!\(username)@\(hostmask)"
+        }
+        return self.address ?? ""
     }
 
     public func isCurrentUser (client: IRCClient) -> Bool {
