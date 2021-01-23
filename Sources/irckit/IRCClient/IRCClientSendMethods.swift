@@ -83,14 +83,66 @@ extension IRCClient {
     }
 
     public func sendMessage (toChannel channel: IRCChannel, contents: String) {
-        self.sendMessage(toChannelName: channel.name, contents: contents)
+        self.sendMessage(toTarget: channel.name, contents: contents)
     }
 
+    @available(*, deprecated, message: "Use sendMessage toTarget instead")
     public func sendMessage (toChannelName channelName: String, contents: String) {
-        if self.hasIRCv3Capability(.labeledResponses) {
-            self.send(command: .PRIVMSG, parameters: [channelName, contents])
-        } else {
-            self.send(command: .PRIVMSG, parameters: [channelName, contents])
+        self.sendMessage(toTarget: channelName, contents: contents)
+    }
+
+    public func sendMessage (toTarget target: String, contents: String) {
+        /*
+         The IRC protocol has a maximum message length of 512 including source (nick!user@host), command and line break
+         For this we are calculating the length of our source and adding 7 for PRIVMSG, 7 for spaces and characters
+         in the command, and finally the length of the target (channel/pm user).
+
+         Whilst the IRC protocol expects us to derive the length of our own source, this is sometimes impossible as
+         following the RFC, the server never actually tells you your own hostname until you join a channel.
+         Thanks Jarkko Oikarinen, very cool.
+
+         In these circumstances we default to a sender length of 103, 30 for nickname, 10 for ident/username and
+         63 for hostmask.
+         */
+        let senderLength = self.currentSender?.description.utf8.count ?? 103
+        let maxMessageLength = 510 - (senderLength + 7 + 7 + target.utf8.count)
+
+        var contents = contents
+        while contents.utf8.count > 0 {
+            if contents.utf8.count <= maxMessageLength {
+                self.send(command: .PRIVMSG, parameters: [target, contents])
+                contents = ""
+            } else {
+                // Find the the point of the message where we've reached the max number of bytes we can send
+                let maxMessageView = contents.utf8.index(contents.utf8.startIndex, offsetBy: maxMessageLength)
+
+                // Attempt to find the last whitespace before the message limit where we can split the message
+                var delimit = contents.rangeOfCharacter(
+                    from: .whitespaces,
+                    options: .backwards,
+                    range: contents.startIndex..<maxMessageView.samePosition(in: contents)!
+                )?.lowerBound
+
+                if delimit == nil {
+                    /*
+                     For some reason some mad soul has sent a ~500+ byte message with NO spaces.
+                     Let's instead split the message at the last whole grapheme cluster.
+                     */
+                    delimit = contents.index(before: maxMessageView.samePosition(in: contents)!)
+                }
+
+                if delimit == nil {
+                    /*
+                     Someone has managed to send a single 500+ byte grapheme cluster.
+                     Give up all hope and just send the whole thing.
+                     */
+                    delimit = contents.endIndex
+                }
+
+                let splitMessage = String(contents[contents.startIndex..<delimit!])
+                contents.removeSubrange(contents.startIndex..<delimit!)
+                self.send(command: .PRIVMSG, parameters: [target, splitMessage])
+            }
         }
     }
 
