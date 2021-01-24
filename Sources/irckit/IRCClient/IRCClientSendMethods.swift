@@ -114,7 +114,7 @@ extension IRCClient {
                 contents = ""
             } else {
                 // Find the the point of the message where we've reached the max number of bytes we can send
-                let maxMessageView = contents.utf8.index(contents.utf8.startIndex, offsetBy: maxMessageLength)
+                let maxMessageView = contents.utf8.index(contents.utf8.startIndex, offsetBy: maxMessageLength - 1)
 
                 // Attempt to find the last whitespace before the message limit where we can split the message
                 var delimit = contents.rangeOfCharacter(
