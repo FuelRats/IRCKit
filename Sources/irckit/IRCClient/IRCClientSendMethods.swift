@@ -120,7 +120,7 @@ extension IRCClient {
                 var delimit = contents.rangeOfCharacter(
                     from: .whitespaces,
                     options: .backwards,
-                    range: contents.startIndex..<maxMessageView.samePosition(in: contents)!
+                    range: contents.startIndex..<(maxMessageView.samePosition(in: contents) ?? contents.endIndex)
                 )?.lowerBound
 
                 if delimit == nil {
@@ -128,7 +128,7 @@ extension IRCClient {
                      For some reason some mad soul has sent a ~500+ byte message with NO spaces.
                      Let's instead split the message at the last whole grapheme cluster.
                      */
-                    delimit = contents.index(before: maxMessageView.samePosition(in: contents)!)
+                    delimit = contents.index(before: (maxMessageView.samePosition(in: contents) ?? contents.endIndex))
                 }
 
                 if delimit == nil {
