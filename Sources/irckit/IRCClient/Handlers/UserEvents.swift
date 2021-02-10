@@ -30,7 +30,7 @@ extension IRCClient {
             return
         }
         
-        let previousChannels = self.channels
+        let previousChannels = self.channels.filter({ $0.member(fromSender: message.sender!) != nil })
 
         for channel in self.channels {
             channel.remove(sender: sender)
