@@ -29,12 +29,14 @@ extension IRCClient {
         guard let sender = message.sender else {
             return
         }
+        
+        let previousChannels = self.channels
 
         for channel in self.channels {
             channel.remove(sender: sender)
         }
 
-        IRCUserQuitNotification().encode(payload: message).post()
+        IRCUserQuitNotification().encode(payload: IRCUserQuitNotification.IRCUserQuit(previousChannels: previousChannels, raw: message)).post()
     }
 
     func handleNickChangeServerEvent (message: IRCMessage) {
@@ -126,8 +128,13 @@ extension IRCClient {
 
 public struct IRCUserQuitNotification: NotificationDescriptor {
     public init () {}
+    
+    public struct IRCUserQuit {
+        public let previousChannels: [IRCChannel]
+        public let raw: IRCMessage
+    }
 
-    public typealias Payload = IRCMessage
+    public typealias Payload = IRCUserQuit
     public let name = Notification.Name("IRCDidQuitServer")
 }
 
