@@ -19,12 +19,12 @@ IRCKit is an asynchronous pure Swift modern IRC library using the Apple NIO even
 * Invite notifications ([invite-notify](https://ircv3.net/specs/extensions/invite-notify-3.2))
 * User monitoring ([monitor](https://ircv3.net/specs/core/monitor-3.2))
 * Strict Transport Security ([STS](https://ircv3.net/specs/extensions/sts))
+* Message confirmations ([echo-message](https://ircv3.net/specs/extensions/echo-message-3.2))
 
 
 ### Partially Implemented:
 * Labeled responses ([labeled-response](https://ircv3.net/specs/extensions/labeled-response))
 * Unique message identifiers ([message-ids](https://ircv3.net/specs/extensions/message-ids))
-* Message confirmations ([echo-message](https://ircv3.net/specs/extensions/echo-message-3.2))
    
    
 ###  To be implemented: 
