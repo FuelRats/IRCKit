@@ -114,13 +114,18 @@ extension IRCClient {
                 contents = ""
             } else {
                 // Find the the point of the message where we've reached the max number of bytes we can send
-                let maxMessageView = contents.utf8.index(contents.utf8.startIndex, offsetBy: maxMessageLength - 1)
+                var maxMessageView = contents.utf8.index(contents.utf8.startIndex, offsetBy: maxMessageLength - 1)
+                var samePosition: String.Index? = maxMessageView.samePosition(in: contents)
+                while samePosition == nil && maxMessageView > contents.utf8.startIndex {
+                    maxMessageView = contents.utf8.index(maxMessageView, offsetBy: -1)
+                    samePosition = maxMessageView.samePosition(in: contents)
+                }
 
                 // Attempt to find the last whitespace before the message limit where we can split the message
                 var delimit = contents.rangeOfCharacter(
                     from: .whitespaces,
                     options: .backwards,
-                    range: contents.startIndex..<(maxMessageView.samePosition(in: contents) ?? contents.endIndex)
+                    range: contents.startIndex..<(maxMessageView.samePosition(in: contents)!)
                 )?.lowerBound
 
                 if delimit == nil {
