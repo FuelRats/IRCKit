@@ -40,6 +40,7 @@ public struct IRCPrivateMessage: IRCNotification {
 extension IRCClient {
     func handlePrivmsgEvent (message: IRCMessage) {
         if message.sender?.nickname == self.currentNick {
+            self.handleEchoPrivmsgEvent(message: message)
             return
         }
 
@@ -49,6 +50,25 @@ extension IRCClient {
             self.handleNonChannelPrivmsgEvent(message: message)
         }
 
+    }
+    
+    func handleEchoPrivmsgEvent (message: IRCMessage) {
+        guard let sender = message.sender else {
+            return
+        }
+        var user = IRCUser(fromPrivateMessage: message, onClient: self)
+        let destination = self.getChannel(named: message.parameters[0]) ?? IRCChannel(privateMessage: user, onClient: self)
+        user = destination.member(fromSender: sender) ?? user
+        let messageContents = message.parameters[1]
+        
+        IRCEchoMessageNotification().encode(payload: IRCPrivateMessage(
+            id: message.label,
+            client: self,
+            destination: destination,
+            user: user,
+            message: messageContents,
+            raw: message
+        )).post()
     }
 
     func handleChannelPrivmsgEvent (message: IRCMessage, channel: IRCChannel) {
@@ -186,4 +206,10 @@ public struct IRCPrivateCTCPRequestNotification: NotificationDescriptor {
     public init () {}
     public typealias Payload = IRCPrivateMessage
     public let name = Notification.Name("IRCDidReceivePrivateCTCPRequest")
+}
+
+public struct IRCEchoMessageNotification: NotificationDescriptor {
+    public init () {}
+    public typealias Payload = IRCPrivateMessage
+    public let name = Notification.Name("IRCChannelDidReceiveEchoMessage")
 }
