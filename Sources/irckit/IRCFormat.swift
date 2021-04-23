@@ -29,7 +29,10 @@ public struct IRCFormat {
         return "\u{002}\(string)\u{002}"
     }
 
-    public static func color(_ color: IRCColor, _ string: String) -> String {
+    public static func color (_ color: IRCColor, background: IRCColor? = nil, _ string: String) -> String {
+        if let background = background {
+            return "\u{003}\(color.rawValue),\(background.rawValue)\(string)\u{003}"
+        }
         return "\u{003}\(color.rawValue)\(string)\u{003}"
     }
 }
