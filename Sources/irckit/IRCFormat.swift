@@ -28,6 +28,26 @@ public struct IRCFormat {
     public static func bold (_ string: String) -> String {
         return "\u{002}\(string)\u{002}"
     }
+    
+    public static func italic (_ string: String) -> String {
+        return "\u{01D}\(string)\u{01D}"
+    }
+    
+    public static func underline (_ string: String) -> String {
+        return "\u{01F}\(string)\u{01F}"
+    }
+    
+    public static func strikethrough (_ string: String) -> String {
+        return "\u{01E}\(string)\u{01E}"
+    }
+    
+    public static func monospace (_ string: String) -> String {
+        return "\u{011}\(string)\u{011}"
+    }
+    
+    public static func reverse (_ string: String) -> String {
+        return "\u{016}\(string)\u{016}"
+    }
 
     public static func color (_ color: IRCColor, background: IRCColor? = nil, _ string: String) -> String {
         if let background = background {
