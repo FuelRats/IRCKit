@@ -80,15 +80,17 @@ extension IRCClient {
                 raw: message
             )).post()
         } else {
-            user.lastMessage = messageContents
-            IRCChannelNoticeNotification().encode(payload: IRCPrivateMessage(
+            let message = IRCPrivateMessage(
                 id: message.label,
                 client: self,
                 destination: channel,
                 user: user,
                 message: messageContents,
                 raw: message
-            )).post()
+            )
+            IRCChannelNoticeNotification().encode(payload: message).post()
+            
+            user.lastMessage = message
         }
     }
 

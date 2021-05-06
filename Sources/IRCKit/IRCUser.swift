@@ -44,7 +44,7 @@ public class IRCUser {
     public internal(set) var isAway = false
     public internal(set) var isIRCOperator = false
     public internal(set) var isSecure = false
-    public internal(set) var lastMessage: String?
+    public internal(set) var lastMessage: IRCPrivateMessage?
     public internal(set) var connectedServer: String?
 
     public internal(set) var channelUserModes: Set<IRCChannelUserMode> = []
