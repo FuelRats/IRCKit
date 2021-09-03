@@ -81,4 +81,18 @@ public extension NotificationCenter {
         })
         return NotificationToken(token: token, center: self)
     }
+    
+    func addAsyncObserver<A: NotificationDescriptor>(
+        descriptor: A,
+        queue: OperationQueue? = nil,
+        using block: @escaping (A.Payload) async -> Void) -> NotificationToken {
+
+        let token = addObserver(forName: descriptor.name, object: nil, queue: queue, using: { note in
+            detach {
+                await block(descriptor.decode(note))
+            }
+        })
+        return NotificationToken(token: token, center: self)
+    }
 }
+

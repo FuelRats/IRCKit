@@ -42,7 +42,7 @@ public class IRCChannel: Equatable {
     var isExpectingWhoUpdate: Bool = false
     public let isPrivateMessage: Bool
 
-    init (
+    public init (
         channelName: String,
         onClient client: IRCClient,
         channelModes: [IRCChannelMode: String?] = [:],
@@ -56,7 +56,7 @@ public class IRCChannel: Equatable {
         self.isPrivateMessage = false
     }
 
-    init (privateMessage sender: IRCUser, onClient client: IRCClient) {
+    public init (privateMessage sender: IRCUser, onClient client: IRCClient) {
         self.id = UUID()
         self.name = sender.nickname
         self.client = client
