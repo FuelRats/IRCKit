@@ -17,9 +17,9 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-nio.git", from: Version(2, 22, 0)),
-        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: Version (2, 9, 1)),
-        .package(url: "https://github.com/apple/swift-nio-extras.git", from: Version(1, 7, 0)),
+        .package(url: "https://github.com/apple/swift-nio.git", from: Version(2, 32, 3)),
+        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: Version (2, 15, 1)),
+        .package(url: "https://github.com/apple/swift-nio-extras.git", from: Version(1, 10, 2)),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: Version(1, 4, 0)),
         .package(url: "https://github.com/gonzalezreal/DefaultCodable.git", from: Version(1, 2, 0))
     ],

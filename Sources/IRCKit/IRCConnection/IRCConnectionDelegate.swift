@@ -24,7 +24,7 @@
 
 import Foundation
 
-public protocol IRCConnectionDelegate: class {
+public protocol IRCConnectionDelegate: AnyObject {
     func didConnectToHost ()
     func didReceiveDataFromConnection (data: String)
 }

@@ -1,5 +1,5 @@
 /*
- Copyright 2020 The Fuel Rats Mischief
+ Copyright 2021 The Fuel Rats Mischief
  
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
@@ -88,7 +88,7 @@ public extension NotificationCenter {
         using block: @escaping (A.Payload) async -> Void) -> NotificationToken {
 
         let token = addObserver(forName: descriptor.name, object: nil, queue: queue, using: { note in
-            detach {
+            Task {
                 await block(descriptor.decode(note))
             }
         })
