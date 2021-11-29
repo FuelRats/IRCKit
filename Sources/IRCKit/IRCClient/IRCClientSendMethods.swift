@@ -105,7 +105,7 @@ extension IRCClient {
         var contents = contents
         while contents.utf8.count > 0 {
             if contents.utf8.count <= maxMessageLength {
-                self.send(command: .PRIVMSG, parameters: [target, contents])
+                self.send(command: .PRIVMSG, parameters: [target, contents], tags: additionalTags)
                 contents = ""
             } else {
                 // Find the the point of the message where we've reached the max number of bytes we can send
