@@ -33,7 +33,11 @@ public struct IRCPrivateMessage: IRCNotification {
     public let raw: IRCMessage
 
     public func reply (message: String) {
-        client.sendMessage(toChannel: destination, contents: message)
+        var tags: [String: String?] = [:]
+        if let msgid = self.raw.messageTags["msgid"] {
+            tags["+draft/reply"] = msgid
+        }
+        client.sendMessage(toTarget: destination.name, contents: message, additionalTags: tags)
     }
 }
 

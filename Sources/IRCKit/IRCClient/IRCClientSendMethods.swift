@@ -82,16 +82,11 @@ extension IRCClient {
         self.send(command: .AUTHENTICATE, parameters: [message])
     }
 
-    public func sendMessage (toChannel channel: IRCChannel, contents: String) {
-        self.sendMessage(toTarget: channel.name, contents: contents)
+    public func sendMessage (toChannel channel: IRCChannel, contents: String, additionalTags: [String: String?] = [:]) {
+        self.sendMessage(toTarget: channel.name, contents: contents, additionalTags: additionalTags)
     }
 
-    @available(*, deprecated, message: "Use sendMessage toTarget instead")
-    public func sendMessage (toChannelName channelName: String, contents: String) {
-        self.sendMessage(toTarget: channelName, contents: contents)
-    }
-
-    public func sendMessage (toTarget target: String, contents: String) {
+    public func sendMessage (toTarget target: String, contents: String, additionalTags: [String: String?] = [:]) {
         /*
          The IRC protocol has a maximum message length of 512 including source (nick!user@host), command and line break
          For this we are calculating the length of our source and adding 7 for PRIVMSG, 7 for spaces and characters
@@ -146,7 +141,7 @@ extension IRCClient {
 
                 let splitMessage = String(contents[contents.startIndex..<delimit!])
                 contents.removeSubrange(contents.startIndex..<delimit!)
-                self.send(command: .PRIVMSG, parameters: [target, splitMessage])
+                self.send(command: .PRIVMSG, parameters: [target, splitMessage], tags: additionalTags)
             }
         }
     }
