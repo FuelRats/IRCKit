@@ -120,7 +120,7 @@ public struct IRCMessage {
         let tagsString = tagsString.suffix(from: tagsString.index(tagsString.startIndex, offsetBy: 1))
         return tagsString.split(separator: ";").reduce(into: [String: String](), { tags, tag in
             let tagComponents = tag.split(separator: "=")
-            tags[String(tagComponents[0])] = String(tagComponents[1])
+            tags[String(tagComponents[0])] = tagComponents.count > 1 ? String(tagComponents[1]) : nil
         })
     }
 }
