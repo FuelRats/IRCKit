@@ -200,6 +200,7 @@ extension IRCClient {
         let modes = message.parameters[1]
         var modeArgs = message.parameters[2...]
         var revoking = false
+        let user = channel.member(fromSender: message.sender!)
 
         for modeChar in Array(modes) {
             if modeChar == "+" {
@@ -222,10 +223,25 @@ extension IRCClient {
                     member.channelUserModes.insert(userMode)
                 }
                 modeArgs.removeFirst()
+                IRCChannelUserModeChangeNotification().encode(payload: IRCChannelUserModeChangeNotification.IRCChannelUserModeChange(
+                    user: user,
+                    channel: channel,
+                    mode: userMode,
+                    state: revoking ? .minus : .plus,
+                    target: member,
+                    raw: message)
+                ).post()
                 continue
             }
 
             if let channelMode = IRCChannelMode(rawValue: modeChar) {
+                IRCChannelModeChangeNotification().encode(payload: IRCChannelModeChangeNotification.IRCChannelModeChange(
+                    user: user,
+                    channel: channel,
+                    mode: channelMode,
+                    state: revoking ? .minus : .plus,
+                    raw: message)
+                ).post()
                 if revoking {
                     channel.channelModes.removeValue(forKey: channelMode)
                     continue
@@ -301,4 +317,39 @@ public struct IRCChannelInviteNotification: NotificationDescriptor {
 
     public typealias Payload = IRCChannelInvite
     public let name = Notification.Name("IRCDidInviteToChannel")
+}
+
+
+
+
+
+public struct IRCChannelModeChangeNotification: NotificationDescriptor {
+    public init () {}
+
+    public struct IRCChannelModeChange {
+        public let user: IRCUser?
+        public let channel: IRCChannel
+        public let mode: IRCChannelMode
+        public let state: FloatingPointSign
+        public let raw: IRCMessage
+    }
+
+    public typealias Payload = IRCChannelModeChange
+    public let name = Notification.Name("IRCDidChangeChannelMode")
+}
+
+public struct IRCChannelUserModeChangeNotification: NotificationDescriptor {
+    public init () {}
+
+    public struct IRCChannelUserModeChange {
+        public let user: IRCUser?
+        public let channel: IRCChannel
+        public let mode: IRCChannelUserMode
+        public let state: FloatingPointSign
+        public let target: IRCUser
+        public let raw: IRCMessage
+    }
+
+    public typealias Payload = IRCChannelUserModeChange
+    public let name = Notification.Name("IRCDidChangeChannelUserMode")
 }
