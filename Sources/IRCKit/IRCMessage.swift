@@ -113,7 +113,7 @@ public struct IRCMessage {
             return false
         }
 
-        return self.parameters[1].uppercased().starts(with: "ACTION ")
+        return self.parameters[1].uppercased().dropFirst().starts(with: "ACTION ")
     }
 
     static func parseMessageTags (tagsString: String, client: IRCClient) -> [String: String] {
