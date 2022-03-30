@@ -20,19 +20,18 @@ IRCKit is an asynchronous pure Swift modern IRC library using the Apple NIO even
 * User monitoring ([monitor](https://ircv3.net/specs/core/monitor-3.2))
 * Strict Transport Security ([STS](https://ircv3.net/specs/extensions/sts))
 * Message confirmations ([echo-message](https://ircv3.net/specs/extensions/echo-message-3.2))
-
-
-### Partially Implemented:
 * Labeled responses ([labeled-response](https://ircv3.net/specs/extensions/labeled-response))
 * Unique message identifiers ([message-ids](https://ircv3.net/specs/extensions/message-ids))
+* Message replies ([client-tags/reply](https://ircv3.net/specs/client-tags/reply))
+
    
    
 ###  To be implemented: 
 * Message batching ([batch](https://ircv3.net/specs/extensions/batch-3.2))
-* Message replies ([client-tags/reply](https://ircv3.net/specs/client-tags/reply))
 * Message reactions ([client-tags/react](https://ircv3.net/specs/client-tags/react))
 * Typing notifications ([client-tags/typing](https://ircv3.net/specs/client-tags/typing))
 * Server Name Indication ([SNI](https://ircv3.net/specs/core/sni-3.3))
 * Standardised notifications, warnings and errors ([standard-replies](https://ircv3.net/specs/extensions/standard-replies))
-* ZNC Playback  module ([playback](https://wiki.znc.in/Playback))
-* ZNC channel events buffer ([buffextras](https://wiki.znc.in/Buffextras))
+* Channel renaming [channel-rename](https://ircv3.net/specs/extensions/channel-rename)
+* Chat history requests [chathistory](https://ircv3.net/specs/extensions/chathistory)
+* Multiline messages [multiline](https://ircv3.net/specs/extensions/multiline)
