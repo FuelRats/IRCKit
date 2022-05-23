@@ -95,8 +95,8 @@ class Sha256SASLHandler: SASLHandler {
         guard
             let password = self.client.configuration.authenticationPassword,
             let saltedPassword = pbkdf2(password: password, salt: salt, iteration: iterationCount),
-            let clientKey = try? HMAC(key: saltedPassword, variant: .sha256).authenticate(Array("Client Key".utf8)),
-            let serverKey = try? HMAC(key: saltedPassword, variant: .sha256).authenticate(Array("Server Key".utf8)),
+            let clientKey = try? HMAC(key: saltedPassword, variant: .sha2(.sha256)).authenticate(Array("Client Key".utf8)),
+            let serverKey = try? HMAC(key: saltedPassword, variant: .sha2(.sha256)).authenticate(Array("Server Key".utf8)),
             let base64Message = message.data(using: .utf8)?.base64EncodedString()
         else {
             self.client.abortSaslAuthentication()
@@ -113,8 +113,8 @@ class Sha256SASLHandler: SASLHandler {
         ].keyValueString(joinedBy: ",")
 
         guard
-            let clientSignature = try? HMAC(key: storedKey, variant: .sha256).authenticate(Array(authMessage.utf8)),
-            let serverSignature = try? HMAC(key: serverKey, variant: .sha256).authenticate(Array(authMessage.utf8)),
+            let clientSignature = try? HMAC(key: storedKey, variant: .sha2(.sha256)).authenticate(Array(authMessage.utf8)),
+            let serverSignature = try? HMAC(key: serverKey, variant: .sha2(.sha256)).authenticate(Array(authMessage.utf8)),
             let clientXor = clientKey.xor(with: clientSignature)
         else {
             self.client.abortSaslAuthentication()
@@ -150,6 +150,6 @@ private func pbkdf2 (password: String, salt: String, iteration: Int) -> [UInt8]?
     return try? PKCS5.PBKDF2(
         password: Array(password.utf8),
         salt: Array(salt.utf8),
-        iterations: iteration, variant: .sha256
+        iterations: iteration, variant: .sha2(.sha256)
     ).calculate()
 }
