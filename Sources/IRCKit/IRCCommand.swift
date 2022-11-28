@@ -45,4 +45,50 @@ public enum IRCCommand: String {
     case SETNAME
     case MONITOR
     case OPER
+    case AWAY
+    case CYCLE
+    case CLOSE
+    case DCCALLOW
+    case DCCDENY
+    case DIE
+    case DNS
+    case ELINE
+    case GLOBOPS
+    case HELP
+    case INFO
+    case IRCOPS
+    case JUMPSERVER
+    case KILL
+    case KNOCK
+    case LIST
+    case MAP
+    case MOTD
+    case NAMES
+    case OPERMOTD
+    case REHASH
+    case RESTART
+    case SAJOIN
+    case SAPART
+    case SANICK
+    case SAMODE
+    case SETHOST
+    case SETIDENT
+    case SILENCE
+    case SQUIT
+    case STARTTLS
+    case STAFF
+    case STATS
+    case TIME
+    case SPAMFILTER
+    case TEMPSHUN
+    case UNDCCDENY
+    case USERIP
+    case VHOST
+    case WALLOPS
+    case WATCH
+    case VERSION
+    case WHOWAs
+    case KLINE
+    case GLINE
+    case ZLINE
 }
