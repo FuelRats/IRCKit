@@ -243,8 +243,12 @@ open class IRCClient: IRCConnectionDelegate {
     public func send (command: IRCCommand, parameters: String...) {
         self.send(command: command, parameters: parameters)
     }
-
+    
     public func send (command: IRCCommand, parameters: [String], tags: [String: String?] = [:]) {
+        send(command.rawValue, parameters: parameters, tags: tags)
+    }
+
+    public func send (_ command: String, parameters: [String], tags: [String: String?] = [:]) {
         var tags = tags
         var params = parameters
         if self.hasIRCv3Capability(.labeledResponses) && tags["label"] == nil {
