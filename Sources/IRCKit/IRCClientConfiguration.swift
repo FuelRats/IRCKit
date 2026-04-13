@@ -23,7 +23,6 @@
  */
 
 import Foundation
-import DefaultCodable
 
 public struct IRCClientConfiguration: Codable {
     public init (
@@ -42,11 +41,8 @@ public struct IRCClientConfiguration: Codable {
         self.realName = realName
     }
 
-    @Default<False>
-    public var autoConnect = false
-
-    @Default<False>
-    public var autoReconnect = false
+    public var autoConnect: Bool = false
+    public var autoReconnect: Bool = false
 
     public var serverAddress: String
     public var serverPort: Int = 6697
@@ -62,13 +58,10 @@ public struct IRCClientConfiguration: Codable {
     public var floodControlDelayTimerInterval: Int? = 3
     public var floodControlMaximumMessages: Int? = 5
 
-    @Default<False>
-    public var prefersInsecureConnection = false
+    public var prefersInsecureConnection: Bool = false
     public var chiperSuite: String?
     public var clientCertificatePath: String?
-    @Default<False>
-    public var allowsServerSelfSignedCertificate = false
+    public var allowsServerSelfSignedCertificate: Bool = false
 
-    @Default<Empty>
     public var channels: [String] = []
 }

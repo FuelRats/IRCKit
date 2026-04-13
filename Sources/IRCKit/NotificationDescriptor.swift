@@ -34,8 +34,9 @@ public protocol NotificationDescriptor {
 
 extension Notification {
     func post() {
+        nonisolated(unsafe) let notification = self
         DispatchQueue.main.async {
-            NotificationCenter.default.post(self)
+            NotificationCenter.default.post(notification)
         }
     }
 }
@@ -84,14 +85,15 @@ public extension NotificationCenter {
         return NotificationToken(token: token, center: self)
     }
     
-    func addAsyncObserver<A: NotificationDescriptor>(
+    func addAsyncObserver<A: NotificationDescriptor & Sendable>(
         descriptor: A,
         queue: OperationQueue? = nil,
-        using block: @escaping (A.Payload) async -> Void) -> NotificationToken {
+        using block: @escaping @Sendable (A.Payload) async -> Void) -> NotificationToken where A.Payload: Sendable {
 
         let token = addObserver(forName: descriptor.name, object: nil, queue: queue, using: { note in
+            let payload = descriptor.decode(note)
             Task {
-                await block(descriptor.decode(note))
+                await block(payload)
             }
         })
         return NotificationToken(token: token, center: self)

@@ -37,10 +37,9 @@ open class IRCClient: IRCConnectionDelegate {
         willSet {
             #if os(Linux)
             #else
-            if #available(iOS 13, macOS 10.15, *) {
-                DispatchQueue.main.async {
-                    self.objectWillChange.send()
-                }
+            nonisolated(unsafe) let client = self
+            DispatchQueue.main.async {
+                client.objectWillChange.send()
             }
             #endif
         }
@@ -49,10 +48,9 @@ open class IRCClient: IRCConnectionDelegate {
         willSet {
             #if os(Linux)
             #else
-            if #available(iOS 13, macOS 10.15, *) {
-                DispatchQueue.main.async {
-                    self.objectWillChange.send()
-                }
+            nonisolated(unsafe) let client = self
+            DispatchQueue.main.async {
+                client.objectWillChange.send()
             }
             #endif
         }
@@ -61,7 +59,7 @@ open class IRCClient: IRCConnectionDelegate {
     public internal(set) var currentSender: IRCSender?
     public var connectCommands: [ConnectCommand] = []
 
-    static var supportedHandlers: [SASLHandler.Type] = [
+    nonisolated(unsafe) static var supportedHandlers: [SASLHandler.Type] = [
         PlainTextSASLHandler.self,
         ExternalSASLHandler.self,
         Sha256SASLHandler.self
