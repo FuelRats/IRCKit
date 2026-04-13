@@ -32,7 +32,7 @@ public struct IRCPrivateMessage: IRCNotification {
     public let message: String
     public let raw: IRCMessage
 
-    public func reply (message: String) {
+    public func reply(message: String) {
         var tags: [String: String?] = [:]
         if let msgid = self.raw.messageTags["msgid"] {
             tags["+draft/reply"] = msgid
@@ -42,7 +42,7 @@ public struct IRCPrivateMessage: IRCNotification {
 }
 
 extension IRCClient {
-    func handlePrivmsgEvent (message: IRCMessage) {
+    func handlePrivmsgEvent(message: IRCMessage) {
         if message.sender?.nickname == self.currentNick {
             self.handleEchoPrivmsgEvent(message: message)
             return
@@ -56,12 +56,13 @@ extension IRCClient {
 
     }
     
-    func handleEchoPrivmsgEvent (message: IRCMessage) {
+    func handleEchoPrivmsgEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
         var user = IRCUser(fromPrivateMessage: message, onClient: self)
-        let destination = self.getChannel(named: message.parameters[0]) ?? IRCChannel(privateMessage: user, onClient: self)
+        let destination = self.getChannel(named: message.parameters[0])
+            ?? IRCChannel(privateMessage: user, onClient: self)
         user = destination.member(fromSender: sender) ?? user
         let messageContents = message.parameters[1]
         
@@ -75,7 +76,7 @@ extension IRCClient {
         )).post()
     }
 
-    func handleChannelPrivmsgEvent (message: IRCMessage, channel: IRCChannel) {
+    func handleChannelPrivmsgEvent(message: IRCMessage, channel: IRCChannel) {
         guard let sender = message.sender, let user = channel.member(fromSender: sender) else {
             return
         }
@@ -122,7 +123,7 @@ extension IRCClient {
         }
     }
 
-    func handleNonChannelPrivmsgEvent (message: IRCMessage) {
+    func handleNonChannelPrivmsgEvent(message: IRCMessage) {
         guard message.sender != nil else {
             return
         }

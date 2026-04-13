@@ -33,7 +33,7 @@ public struct IRCServerNotice {
 }
 
 extension IRCClient {
-    func handleNoticeEvent (message: IRCMessage) {
+    func handleNoticeEvent(message: IRCMessage) {
         if message.sender?.nickname == self.currentNick {
             return
         }
@@ -46,7 +46,7 @@ extension IRCClient {
 
     }
 
-    func handleChannelNoticeEvent (message: IRCMessage, channel: IRCChannel) {
+    func handleChannelNoticeEvent(message: IRCMessage, channel: IRCChannel) {
         guard let sender = message.sender else {
             return
         }
@@ -94,7 +94,7 @@ extension IRCClient {
         }
     }
 
-    func handleNonChannelNoticeEvent (message: IRCMessage) {
+    func handleNonChannelNoticeEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }

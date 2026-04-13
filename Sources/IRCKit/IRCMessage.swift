@@ -116,7 +116,7 @@ public struct IRCMessage {
         return self.parameters[1].uppercased().dropFirst().starts(with: "ACTION ")
     }
 
-    static func parseMessageTags (tagsString: String, client: IRCClient) -> [String: String] {
+    static func parseMessageTags(tagsString: String, client: IRCClient) -> [String: String] {
         let tagsString = tagsString.suffix(from: tagsString.index(tagsString.startIndex, offsetBy: 1))
         return tagsString.split(separator: ";").reduce(into: [String: String](), { tags, tag in
             let tagComponents = tag.split(separator: "=")

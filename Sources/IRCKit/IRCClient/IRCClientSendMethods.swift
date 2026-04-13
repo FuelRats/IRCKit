@@ -25,7 +25,7 @@
 import Foundation
 
 extension IRCClient {
-    func sendRegistration () {
+    func sendRegistration() {
         if let password = self.configuration.serverPassword {
             self.send(command: .PASS, parameters: [password])
         }
@@ -37,7 +37,7 @@ extension IRCClient {
         }
     }
 
-    public func sendJoin (channels: [String]) {
+    public func sendJoin(channels: [String]) {
         var channels = channels
         while channels.count > 0 {
             let chunkSize = min(channels.count, 10)
@@ -47,27 +47,27 @@ extension IRCClient {
         }
     }
 
-    public func sendJoin (channelName: String) {
+    public func sendJoin(channelName: String) {
         self.send(command: .JOIN, parameters: [channelName])
     }
 
-    public func sendNicknameChange (nickname: String) {
+    public func sendNicknameChange(nickname: String) {
         self.send(command: .NICK, parameters: [nickname])
     }
 
-    public func sendPart (channel: IRCChannel, message: String = "") {
+    public func sendPart(channel: IRCChannel, message: String = "") {
         self.sendPart(channelName: channel.name)
     }
 
-    public func sendPart (channelName: String, message: String = "") {
+    public func sendPart(channelName: String, message: String = "") {
         self.send(command: .PART, parameters: [channelName, message])
     }
 
-    public func sendQuit (message: String = "") {
+    public func sendQuit(message: String = "") {
         self.send(command: .QUIT, parameters: [message])
     }
 
-    public func requestIRCv3Capabilities (capabilities: [IRCv3Capability]) {
+    public func requestIRCv3Capabilities(capabilities: [IRCv3Capability]) {
         guard capabilities.count > 0 else {
             return
         }
@@ -78,15 +78,15 @@ extension IRCClient {
         self.send(command: .CAP, parameters: ["REQ", capString])
     }
 
-    public func sendAuthenticate (message: String) {
+    public func sendAuthenticate(message: String) {
         self.send(command: .AUTHENTICATE, parameters: [message])
     }
 
-    public func sendMessage (toChannel channel: IRCChannel, contents: String, additionalTags: [String: String?] = [:]) {
+    public func sendMessage(toChannel channel: IRCChannel, contents: String, additionalTags: [String: String?] = [:]) {
         self.sendMessage(toTarget: channel.name, contents: contents, additionalTags: additionalTags)
     }
 
-    public func sendMessage (toTarget target: String, contents: String, additionalTags: [String: String?] = [:]) {
+    public func sendMessage(toTarget target: String, contents: String, additionalTags: [String: String?] = [:]) {
         /*
          The IRC protocol has a maximum message length of 512 including source (nick!user@host), command and line break
          For this we are calculating the length of our source and adding 7 for PRIVMSG, 7 for spaces and characters
@@ -158,27 +158,27 @@ extension IRCClient {
         self.send(command: .PRIVMSG, parameters: [channel.name, "\u{001}\(contents)\u{001}"])
     }
 
-    public func sendNotice (toTarget target: String, contents: String) {
+    public func sendNotice(toTarget target: String, contents: String) {
         self.send(command: .NOTICE, parameters: [target, contents])
     }
 
-    public func sendMonitor (addTargets targets: Set<String>) {
+    public func sendMonitor(addTargets targets: Set<String>) {
         self.send(command: .MONITOR, parameters: "+", targets.joined(separator: ","))
     }
 
-    public func sendMonitor (removeTargets targets: Set<String>) {
+    public func sendMonitor(removeTargets targets: Set<String>) {
         self.send(command: .MONITOR, parameters: "-", targets.joined(separator: ","))
     }
 
-   public func sendMonitorClear () {
+   public func sendMonitorClear() {
         self.send(command: .MONITOR, parameters: "C")
     }
 
-    public func sendMonitorListRequest () {
+    public func sendMonitorListRequest() {
         self.send(command: .MONITOR, parameters: "L")
     }
 
-    public func sendMonitorStatusRequest () {
+    public func sendMonitorStatusRequest() {
         self.send(command: .MONITOR, parameters: "S")
     }
 }

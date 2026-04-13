@@ -24,7 +24,7 @@
 import Foundation
 
 extension Array where Element == String {
-    func keyValuePairs () -> [String: String?] {
+    func keyValuePairs() -> [String: String?] {
         return self.reduce([:], { (acc: [String: String?], token: String) -> [String: String?] in
             var acc = acc
             let comps = token.components(separatedBy: "=")
@@ -36,7 +36,7 @@ extension Array where Element == String {
 }
 
 extension Dictionary where Key == String, Value == String {
-    func keyValueString (joinedBy separator: String) -> String {
+    func keyValueString(joinedBy separator: String) -> String {
         return self.map({ (kv: (String, String)) -> String in
             let (key, value) = kv
             return "\(key)=\(value)"
@@ -45,7 +45,7 @@ extension Dictionary where Key == String, Value == String {
 }
 
 extension Dictionary where Key == String, Value == String? {
-    func keyValueString (joinedBy separator: String) -> String {
+    func keyValueString(joinedBy separator: String) -> String {
         return self.map({ (kv: (String, String?)) -> String in
             let (key, value) = kv
             return value != nil ? "\(key)=\(value!)" : key
@@ -54,7 +54,7 @@ extension Dictionary where Key == String, Value == String? {
 }
 
 extension Array where Element == UInt8 {
-    func xor (with key: [UInt8]) -> String? {
+    func xor(with key: [UInt8]) -> String? {
         if self.isEmpty {
             return nil
         }
@@ -71,13 +71,13 @@ extension Array where Element == UInt8 {
 }
 
 extension String {
-    func keyValuePairs (separatedBy separator: String) -> [String: String?] {
+    func keyValuePairs(separatedBy separator: String) -> [String: String?] {
         let tokens = self.components(separatedBy: separator)
 
         return tokens.keyValuePairs()
     }
 
-    static func random (length: Int = 20) -> String {
+    static func random(length: Int = 20) -> String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var randomString: String = ""
 
@@ -85,9 +85,9 @@ extension String {
             #if os(Linux)
             let randomValue = Int.random(in: 0..<length)
             #else
-            let randomValue = arc4random_uniform(UInt32(base.count))
+            let randomValue = Int.random(in: 0..<base.count)
             #endif
-            randomString += "\(base[base.index(base.startIndex, offsetBy: Int(randomValue))])"
+            randomString += "\(base[base.index(base.startIndex, offsetBy: randomValue)])"
         }
         return randomString
     }

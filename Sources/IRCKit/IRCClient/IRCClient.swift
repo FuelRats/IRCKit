@@ -96,7 +96,10 @@ open class IRCClient: IRCConnectionDelegate {
         self.configuration = configuration
         self.currentNick = configuration.nickname
 
-        self.connection = try! IRCConnection(configuration: configuration)!
+        guard let connection = try? IRCConnection(configuration: configuration) else {
+            fatalError("Failed to initialize IRC connection")
+        }
+        self.connection = connection
         self.connection.delegate = self
 
         if self.configuration.autoConnect {
@@ -104,11 +107,11 @@ open class IRCClient: IRCConnectionDelegate {
         }
     }
 
-    public func connect () {
+    public func connect() {
         self.connection.connect()
     }
 
-    public func didConnectToHost () {
+    public func didConnectToHost() {
         print("Connected")
 
         self.sendRegistration()
@@ -118,7 +121,7 @@ open class IRCClient: IRCConnectionDelegate {
 
     }
 
-    public func didReceiveDataFromConnection (data: String) {
+    public func didReceiveDataFromConnection(data: String) {
         guard let message = IRCMessage(line: data, client: self) else {
             return
         }
@@ -134,8 +137,7 @@ open class IRCClient: IRCConnectionDelegate {
             case .RPL_WELCOME:
                 if
                     let senderString = message.parameters.last?.components(separatedBy: " ").last,
-                    let sender = IRCSender(fromString: senderString)
-                {
+                    let sender = IRCSender(fromString: senderString) {
                     self.currentSender = sender
                 }
                 if self.configuration.channels.count > 0 {
@@ -225,30 +227,30 @@ open class IRCClient: IRCConnectionDelegate {
         }
     }
 
-    func getChannel (named channelName: String) -> IRCChannel? {
+    func getChannel(named channelName: String) -> IRCChannel? {
         return self.channels.first(where: { $0.name == channelName })
     }
 
-    func addChannel (channel: IRCChannel) {
+    func addChannel(channel: IRCChannel) {
         guard self.channels.first(where: { $0.name == channel.name }) == nil else {
             return
         }
         self.channels.append(channel)
     }
 
-    func removeChannel (named channelName: String) {
+    func removeChannel(named channelName: String) {
         self.channels.removeAll(where: { $0.name == channelName })
     }
 
-    public func send (command: IRCCommand, parameters: String...) {
+    public func send(command: IRCCommand, parameters: String...) {
         self.send(command: command, parameters: parameters)
     }
     
-    public func send (command: IRCCommand, parameters: [String], tags: [String: String?] = [:]) {
+    public func send(command: IRCCommand, parameters: [String], tags: [String: String?] = [:]) {
         send(command.rawValue, parameters: parameters, tags: tags)
     }
 
-    public func send (_ command: String, parameters: [String], tags: [String: String?] = [:]) {
+    public func send(_ command: String, parameters: [String], tags: [String: String?] = [:]) {
         var tags = tags
         var params = parameters
         if self.hasIRCv3Capability(.labeledResponses) && tags["label"] == nil {
@@ -277,7 +279,6 @@ open class IRCClient: IRCConnectionDelegate {
         }
     }
 }
-
 
 #if os(Linux)
 #else

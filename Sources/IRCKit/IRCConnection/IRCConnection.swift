@@ -57,8 +57,7 @@ public class IRCConnection: ChannelInboundHandler {
         if
             let certPath = configuration.clientCertificatePath,
             let certs = try? NIOSSLCertificate.fromPEMFile(certPath),
-            let privateKey = try? NIOSSLPrivateKey(file: certPath, format: .pem)
-        {
+            let privateKey = try? NIOSSLPrivateKey(file: certPath, format: .pem) {
             privateKeySource = .privateKey(privateKey)
             certificateChain.append(contentsOf: certs.map({
                 .certificate($0)
@@ -83,15 +82,13 @@ public class IRCConnection: ChannelInboundHandler {
 
                     while
                         let message = self.sendQueue.first,
-                        self.floodControlMessages < self.configuration.floodControlMaximumMessages ?? 5
-                    {
+                        self.floodControlMessages < self.configuration.floodControlMaximumMessages ?? 5 {
                         self.sendDirectly(message: message)
                         self.sendQueue.removeFirst()
                     }
                 }
             )
         }
-
 
         self.bootstrap = ClientBootstrap(group: group)
             .channelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
@@ -118,7 +115,7 @@ public class IRCConnection: ChannelInboundHandler {
         return self.channel?.isActive ?? false && self.channel?.isWritable ?? false
     }
 
-    public func channelActive (context: ChannelHandlerContext) {
+    public func channelActive(context: ChannelHandlerContext) {
         self.connectionAttempts = 0
 
         self.pingTimer = group.next().scheduleRepeatedTask(initialDelay: .seconds(30), delay: .seconds(30), { _ in
@@ -132,7 +129,7 @@ public class IRCConnection: ChannelInboundHandler {
 
     }
 
-    func connectionFailed () {
+    func connectionFailed() {
         guard self.configuration.autoReconnect == true else {
             return
         }
@@ -150,7 +147,7 @@ public class IRCConnection: ChannelInboundHandler {
         self.connectionFailed()
     }
 
-    public func channelRead (context: ChannelHandlerContext, data: NIOAny) {
+    public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         var buffer = unwrapInboundIn(data)
         let readableBytes = buffer.readableBytes
 
@@ -172,12 +169,12 @@ public class IRCConnection: ChannelInboundHandler {
         self.delegate?.didReceiveDataFromConnection(data: received)
     }
 
-    public func errorCaught (context: ChannelHandlerContext, error: Error) {
+    public func errorCaught(context: ChannelHandlerContext, error: Error) {
         print("Connection closed due to an error: \(String(describing: error))")
         context.close(promise: nil)
     }
 
-    func connect () {
+    func connect() {
         print("Connecting to \(self.configuration.serverAddress):\(self.configuration.serverPort)")
         self.bootstrap?.connect(
             host: self.configuration.serverAddress,
@@ -194,11 +191,11 @@ public class IRCConnection: ChannelInboundHandler {
         })
     }
 
-    func disconnect () {
+    func disconnect() {
         _ = channel?.close(mode: .all)
     }
 
-    private func sendDirectly (message: String) {
+    private func sendDirectly(message: String) {
         if let channel = self.channel {
             let line = message + "\r\n"
             var buffer = channel.allocator.buffer(capacity: line.utf8.count)
@@ -213,15 +210,14 @@ public class IRCConnection: ChannelInboundHandler {
         }
     }
 
-    func send (message: String, bypassingQueue: Bool = false) {
+    func send(message: String, bypassingQueue: Bool = false) {
         guard configuration.floodControlDelayTimerInterval != nil else {
             self.sendDirectly(message: message)
             return
         }
         if
             self.floodControlMessages < self.configuration.floodControlMaximumMessages ?? 5
-                && self.sendQueue.count == 0
-        {
+                && self.sendQueue.count == 0 {
             self.sendDirectly(message: message)
             return
         }

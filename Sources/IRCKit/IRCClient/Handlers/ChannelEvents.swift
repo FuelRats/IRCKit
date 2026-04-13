@@ -39,7 +39,7 @@ public struct IRCChannelEvent: IRCNotification {
 }
 
 extension IRCClient {
-    func handleJoinChannelEvent (message: IRCMessage) {
+    func handleJoinChannelEvent(message: IRCMessage) {
         guard let sender = message.sender, let username = sender.username, let hostmask = sender.hostmask else {
             return
         }
@@ -100,7 +100,7 @@ extension IRCClient {
         }
     }
 
-    func handlePartChannelEvent (message: IRCMessage) {
+    func handlePartChannelEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -127,7 +127,7 @@ extension IRCClient {
         )).post()
     }
 
-    func handleChannelKickEvent (message: IRCMessage) {
+    func handleChannelKickEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -155,7 +155,7 @@ extension IRCClient {
         )).post()
     }
 
-    func handleChannelInviteEvent (message: IRCMessage) {
+    func handleChannelInviteEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -172,7 +172,7 @@ extension IRCClient {
         )).post()
     }
 
-    func handleChannelTopicEvent (message: IRCMessage) {
+    func handleChannelTopicEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -192,7 +192,7 @@ extension IRCClient {
         )).post()
     }
 
-    func handleChannelModeChangeEvent (message: IRCMessage) {
+    func handleChannelModeChangeEvent(message: IRCMessage) {
         guard let channel = self.getChannel(named: message.parameters[0]) else {
             return
         }
@@ -223,7 +223,8 @@ extension IRCClient {
                     member.channelUserModes.insert(userMode)
                 }
                 modeArgs.removeFirst()
-                IRCChannelUserModeChangeNotification().encode(payload: IRCChannelUserModeChangeNotification.IRCChannelUserModeChange(
+                IRCChannelUserModeChangeNotification().encode(
+                    payload: IRCChannelUserModeChangeNotification.IRCChannelUserModeChange(
                     user: user,
                     channel: channel,
                     mode: userMode,
@@ -235,7 +236,8 @@ extension IRCClient {
             }
 
             if let channelMode = IRCChannelMode(rawValue: modeChar) {
-                IRCChannelModeChangeNotification().encode(payload: IRCChannelModeChangeNotification.IRCChannelModeChange(
+                IRCChannelModeChangeNotification().encode(
+                    payload: IRCChannelModeChangeNotification.IRCChannelModeChange(
                     user: user,
                     channel: channel,
                     mode: channelMode,
@@ -318,10 +320,6 @@ public struct IRCChannelInviteNotification: NotificationDescriptor {
     public typealias Payload = IRCChannelInvite
     public let name = Notification.Name("IRCDidInviteToChannel")
 }
-
-
-
-
 
 public struct IRCChannelModeChangeNotification: NotificationDescriptor {
     public init () {}

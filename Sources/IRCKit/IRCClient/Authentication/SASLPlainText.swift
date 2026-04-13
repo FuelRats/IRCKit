@@ -42,13 +42,7 @@ class PlainTextSASLHandler: SASLHandler {
 
             let username = client.configuration.authenticationUsername ?? client.configuration.username
 
-            guard
-                let encodedPassword = "\(username)\0\(username)\0\(password)".data(using: .utf8)?.base64EncodedString()
-            else {
-                client.abortSaslAuthentication()
-                return
-            }
-
+            let encodedPassword = Data("\(username)\0\(username)\0\(password)".utf8).base64EncodedString()
             client.sendAuthenticate(message: encodedPassword)
         } else {
             client.abortSaslAuthentication()

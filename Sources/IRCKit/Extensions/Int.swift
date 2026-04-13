@@ -25,7 +25,7 @@
 import Foundation
 
 extension Int {
-    static func parse (_ string: String?) -> Int? {
+    static func parse(_ string: String?) -> Int? {
         return Int(string ?? "")
     }
 }

@@ -25,7 +25,7 @@
 import Foundation
 
 extension IRCClient {
-    func handleIRCv3CapabilityReply (message: IRCMessage) {
+    func handleIRCv3CapabilityReply(message: IRCMessage) {
         let capProtocolCommand = message.parameters[1]
         switch capProtocolCommand {
             case "LS":
@@ -39,7 +39,7 @@ extension IRCClient {
         }
     }
 
-    func capNegotiation (message: IRCMessage) {
+    func capNegotiation(message: IRCMessage) {
         let caps = IRCv3CapabilityInfo.from(string: message.parameters[2])
         if let strictTransportInfo = caps.keyValuePairs(cap: .strictTransportSecurity) {
             if let port = Int.parse(strictTransportInfo["port"]!), port != self.configuration.serverPort {
@@ -55,7 +55,7 @@ extension IRCClient {
         self.requestIRCv3Capabilities(capabilities: supportedCapabilities)
     }
 
-    func capNegotiationComplete (message: IRCMessage) {
+    func capNegotiationComplete(message: IRCMessage) {
         let acceptedCapabilities = IRCv3Capability.list(fromString: message.parameters[2])
         self.serverInfo.enabledIRCv3Capabilities = acceptedCapabilities
 
@@ -81,11 +81,11 @@ extension IRCClient {
         self.send(command: .CAP, parameters: ["END"])
     }
 
-    func capNegotiationFailed (message: IRCMessage) {
+    func capNegotiationFailed(message: IRCMessage) {
         self.send(command: .CAP, parameters: ["END"])
     }
 
-    func hasIRCv3Capability (_ capability: IRCv3Capability) -> Bool {
+    func hasIRCv3Capability(_ capability: IRCv3Capability) -> Bool {
         return self.serverInfo.enabledIRCv3Capabilities.contains(capability)
     }
 }

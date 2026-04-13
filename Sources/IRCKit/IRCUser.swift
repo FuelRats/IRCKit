@@ -31,7 +31,7 @@ public class IRCUser {
     public internal(set) var hostmask: String
     public internal(set) var realName: String?
 
-    public var account: String? = nil {
+    public var account: String? {
         didSet {
             IRCUserAccountChangeNotification().encode(payload: IRCUserAccountChangeNotification.IRCUserAccountChange(
                 id: UUID().uuidString,
@@ -104,15 +104,15 @@ public enum IRCChannelUserMode: Character {
     case halfop = "h"
     case voice = "v"
 
-    public static func from (symbol: Character, onClient client: IRCClient) -> IRCChannelUserMode? {
+    public static func from(symbol: Character, onClient client: IRCClient) -> IRCChannelUserMode? {
         return client.serverInfo.prefixMapping.first(where: { $0.value == symbol })?.key
     }
 
-    public func toPrefix (onClient client: IRCClient) -> String? {
+    public func toPrefix(onClient client: IRCClient) -> String? {
         return String(client.serverInfo.prefixMapping.first(where: { $0.key == self })?.value ?? Character(""))
     }
 
-    static func map (fromString prefixString: String) -> [IRCChannelUserMode: Character] {
+    static func map(fromString prefixString: String) -> [IRCChannelUserMode: Character] {
         let prefixLettersStartIndex = prefixString.index(prefixString.firstIndex(of: "(")!, offsetBy: 1)
         let prefixLettersEndIndex = prefixString.firstIndex(of: ")")!
         let prefixSymbolsStartIndex = prefixString.index(prefixLettersEndIndex, offsetBy: 1)

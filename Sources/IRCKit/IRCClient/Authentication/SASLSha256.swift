@@ -44,7 +44,7 @@ class Sha256SASLHandler: SASLHandler {
         }
     }
 
-    func sendAuthenticationChallenge () {
+    func sendAuthenticationChallenge() {
         let username = self.client.configuration.authenticationUsername ?? self.client.configuration.username
         let nonce = String.random(length: 32)
         self.nonce = nonce
@@ -58,7 +58,7 @@ class Sha256SASLHandler: SASLHandler {
         self.client.sendAuthenticate(message: encodedChallenge)
     }
 
-    func parseSASLScramResponse (message: IRCMessage) {
+    func parseSASLScramResponse(message: IRCMessage) {
         guard
             let scramData = Data(base64Encoded: message.parameters[0]),
             let scramMessage = String(data: scramData, encoding: .utf8)
@@ -91,12 +91,14 @@ class Sha256SASLHandler: SASLHandler {
 
     /* Thank you to github.com/moortens for documenting how this works in their "yoil" IRC Library
      because the people who made the specification sure didn't bother to. */
-    func scramSha256Authenticate (salt: String, nonce: String, iterationCount: Int, message: String) {
+    func scramSha256Authenticate(salt: String, nonce: String, iterationCount: Int, message: String) {
         guard
             let password = self.client.configuration.authenticationPassword,
             let saltedPassword = pbkdf2(password: password, salt: salt, iteration: iterationCount),
-            let clientKey = try? HMAC(key: saltedPassword, variant: .sha2(.sha256)).authenticate(Array("Client Key".utf8)),
-            let serverKey = try? HMAC(key: saltedPassword, variant: .sha2(.sha256)).authenticate(Array("Server Key".utf8)),
+            let clientKey = try? HMAC(key: saltedPassword, variant: .sha2(.sha256))
+                .authenticate(Array("Client Key".utf8)),
+            let serverKey = try? HMAC(key: saltedPassword, variant: .sha2(.sha256))
+                .authenticate(Array("Server Key".utf8)),
             let base64Message = message.data(using: .utf8)?.base64EncodedString()
         else {
             self.client.abortSaslAuthentication()
@@ -113,8 +115,10 @@ class Sha256SASLHandler: SASLHandler {
         ].keyValueString(joinedBy: ",")
 
         guard
-            let clientSignature = try? HMAC(key: storedKey, variant: .sha2(.sha256)).authenticate(Array(authMessage.utf8)),
-            let serverSignature = try? HMAC(key: serverKey, variant: .sha2(.sha256)).authenticate(Array(authMessage.utf8)),
+            let clientSignature = try? HMAC(key: storedKey, variant: .sha2(.sha256))
+                .authenticate(Array(authMessage.utf8)),
+            let serverSignature = try? HMAC(key: serverKey, variant: .sha2(.sha256))
+                .authenticate(Array(authMessage.utf8)),
             let clientXor = clientKey.xor(with: clientSignature)
         else {
             self.client.abortSaslAuthentication()
@@ -137,7 +141,7 @@ class Sha256SASLHandler: SASLHandler {
         self.client.sendAuthenticate(message: base64Final)
     }
 
-    func scramSha256Verify (verification: String) {
+    func scramSha256Verify(verification: String) {
         if verification.bytes == self.serverSignature {
             self.client.sendAuthenticate(message: "+")
         } else {
@@ -146,7 +150,7 @@ class Sha256SASLHandler: SASLHandler {
     }
 }
 
-private func pbkdf2 (password: String, salt: String, iteration: Int) -> [UInt8]? {
+private func pbkdf2(password: String, salt: String, iteration: Int) -> [UInt8]? {
     return try? PKCS5.PBKDF2(
         password: Array(password.utf8),
         salt: Array(salt.utf8),

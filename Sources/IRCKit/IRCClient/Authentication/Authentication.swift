@@ -30,7 +30,7 @@ public protocol SASLHandler {
 
     init (client: IRCClient)
 
-    func handleResponse (message: IRCMessage)
+    func handleResponse(message: IRCMessage)
 }
 
 extension SASLHandler {
@@ -40,7 +40,7 @@ extension SASLHandler {
 }
 
 extension IRCClient {
-    func saslNegotiation () -> Bool {
+    func saslNegotiation() -> Bool {
         if self.configuration.clientCertificatePath != nil
             && self.serverInfo.supportsSASLMechanism(handler: ExternalSASLHandler.self) {
             self.activeAuthenticationHandler = ExternalSASLHandler(client: self)
@@ -56,19 +56,19 @@ extension IRCClient {
         return true
     }
 
-    func handleAuthenticationResponse (message: IRCMessage) {
+    func handleAuthenticationResponse(message: IRCMessage) {
         self.activeAuthenticationHandler?.handleResponse(message: message)
     }
 
-    func abortSaslAuthentication () {
+    func abortSaslAuthentication() {
         self.sendAuthenticate(message: "*")
     }
 
-    func handleAuthenticationCompleted (message: IRCMessage) {
+    func handleAuthenticationCompleted(message: IRCMessage) {
         self.send(command: .CAP, parameters: ["END"])
     }
 
-    func handleAccountChangeServerEvent (message: IRCMessage) {
+    func handleAccountChangeServerEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }

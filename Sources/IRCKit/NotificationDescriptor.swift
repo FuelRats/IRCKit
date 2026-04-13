@@ -33,7 +33,7 @@ public protocol NotificationDescriptor {
 }
 
 extension Notification {
-    func post () {
+    func post() {
         DispatchQueue.main.async {
             NotificationCenter.default.post(self)
         }
@@ -52,7 +52,9 @@ public extension NotificationDescriptor {
     }
 
     func decode(_ note: Notification) -> Payload {
-        let model = note.userInfo![_modelKey] as! Payload
+        guard let model = note.userInfo?[_modelKey] as? Payload else {
+            fatalError("Failed to decode notification payload of type \(Payload.self)")
+        }
         return model
     }
 }
@@ -95,4 +97,3 @@ public extension NotificationCenter {
         return NotificationToken(token: token, center: self)
     }
 }
-

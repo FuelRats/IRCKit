@@ -25,7 +25,7 @@
 import Foundation
 
 extension IRCClient {
-    func handleNameReply (message: IRCMessage) {
+    func handleNameReply(message: IRCMessage) {
         guard message.parameters.count == 4 else {
             return
         }
@@ -65,7 +65,7 @@ extension IRCClient {
 
     // Standard WHO: <recipient> <channel> <username> <host> <server> <nick> <modes> <realname>
     // Extended WHO: <recipient> <channel> <username> <host> <server> <nick> <modes> <account> <realname>
-    func handleWhoReply (message: IRCMessage) {
+    func handleWhoReply(message: IRCMessage) {
         guard message.parameters.count > 7 else {
             return
         }
@@ -103,7 +103,7 @@ extension IRCClient {
         channel.set(member: user)
     }
 
-    func handleTopicInformation (message: IRCMessage) {
+    func handleTopicInformation(message: IRCMessage) {
         let channelName = message.parameters[1]
         guard let channel = self.getChannel(named: channelName) else {
             return
@@ -129,7 +129,7 @@ extension IRCClient {
         }
     }
 
-    func handleChannelModeInformation (message: IRCMessage) {
+    func handleChannelModeInformation(message: IRCMessage) {
         let channelName = message.parameters[1]
         guard let channel = self.getChannel(named: channelName) else {
             return
@@ -138,7 +138,7 @@ extension IRCClient {
         channel.channelModes = IRCChannelMode.modeMap(fromParams: Array(message.parameters[2...]))
     }
 
-    func handleChannelCreatedInformation (message: IRCMessage) {
+    func handleChannelCreatedInformation(message: IRCMessage) {
         let channelName = message.parameters[1]
         guard let channel = self.getChannel(named: channelName) else {
             return

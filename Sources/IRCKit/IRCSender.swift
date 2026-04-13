@@ -53,7 +53,6 @@ public struct IRCSender: CustomStringConvertible {
         }
     }
 
-
     public var description: String {
         if let username = username, let hostmask = hostmask {
             return "\(self.nickname)!\(username)@\(hostmask)"
@@ -61,11 +60,11 @@ public struct IRCSender: CustomStringConvertible {
         return self.address ?? ""
     }
 
-    public func isCurrentUser (client: IRCClient) -> Bool {
+    public func isCurrentUser(client: IRCClient) -> Bool {
         return self.nickname == client.currentNick
     }
 
-    static func hostmaskComponents (from senderString: String) -> (String, String, String)? {
+    static func hostmaskComponents(from senderString: String) -> (String, String, String)? {
         guard
             let nicknameDivIndex = senderString.firstIndex(of: "!"),
             let hostnameDivIndex = senderString.firstIndex(of: "@")

@@ -65,15 +65,15 @@ public class IRCChannel: Equatable {
         self.isPrivateMessage = true
     }
 
-    public func send (message: String) {
+    public func send(message: String) {
         self.client.sendMessage(toChannel: self, contents: message)
     }
 
-    func add (member: IRCUser) {
+    func add(member: IRCUser) {
         self.members.append(member)
     }
 
-    func set (nickname: String, member: IRCUser) {
+    func set(nickname: String, member: IRCUser) {
         let existingMemberIndex = self.members.firstIndex(where: {
             $0.nickname == nickname
         })
@@ -84,7 +84,7 @@ public class IRCChannel: Equatable {
         }
     }
 
-    func set (member: IRCUser) {
+    func set(member: IRCUser) {
         let existingMemberIndex = self.members.firstIndex(where: {
             $0.nickname == member.nickname
         })
@@ -95,7 +95,7 @@ public class IRCChannel: Equatable {
         }
     }
 
-    func remove (member: IRCUser) {
+    func remove(member: IRCUser) {
         self.members.removeAll(where: {
             member.nickname == $0.nickname
         })
@@ -111,7 +111,7 @@ public class IRCChannel: Equatable {
         self.remove(named: sender.nickname)
     }
 
-    public func member (named nickname: String) -> IRCUser? {
+    public func member(named nickname: String) -> IRCUser? {
         let nickname = nickname.lowercased()
         return members.first(where: {
             $0.nickname.lowercased() == nickname

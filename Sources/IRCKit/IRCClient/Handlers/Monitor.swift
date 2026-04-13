@@ -25,14 +25,14 @@
 import Foundation
 
 extension IRCClient {
-    func handleMonitorOnlineEvent (message: IRCMessage) {
+    func handleMonitorOnlineEvent(message: IRCMessage) {
         let targets = message.parameters.last?.components(separatedBy: ",") ?? []
         for target in targets {
             IRCUserOnlineNotification().encode(payload: target).post()
         }
     }
 
-    func handleMonitorOfflineEvent (message: IRCMessage) {
+    func handleMonitorOfflineEvent(message: IRCMessage) {
         let targets = message.parameters.last?.components(separatedBy: ",") ?? []
         for target in targets {
             IRCUserOfflineNotification().encode(payload: target).post()

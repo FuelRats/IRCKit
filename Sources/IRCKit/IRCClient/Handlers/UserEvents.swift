@@ -25,7 +25,7 @@
 import Foundation
 
 extension IRCClient {
-    func handleQuitServerEvent (message: IRCMessage) {
+    func handleQuitServerEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -36,10 +36,12 @@ extension IRCClient {
             channel.remove(sender: sender)
         }
 
-        IRCUserQuitNotification().encode(payload: IRCUserQuitNotification.IRCUserQuit(previousChannels: previousChannels, raw: message)).post()
+        IRCUserQuitNotification().encode(payload: IRCUserQuitNotification.IRCUserQuit(
+            previousChannels: previousChannels, raw: message
+        )).post()
     }
 
-    func handleNickChangeServerEvent (message: IRCMessage) {
+    func handleNickChangeServerEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -66,7 +68,7 @@ extension IRCClient {
         )).post()
     }
 
-    func handleAwayChangeEvent (message: IRCMessage) {
+    func handleAwayChangeEvent(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -80,7 +82,7 @@ extension IRCClient {
         }
     }
 
-    func handleRealNameChange (message: IRCMessage) {
+    func handleRealNameChange(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -94,7 +96,7 @@ extension IRCClient {
         }
     }
 
-    func handleHostnameChange (message: IRCMessage) {
+    func handleHostnameChange(message: IRCMessage) {
         guard let sender = message.sender else {
             return
         }
@@ -118,7 +120,7 @@ extension IRCClient {
         IRCUserHostChangeNotification().encode(payload: message).post()
     }
 
-    func handleHostHidden (message: IRCMessage) {
+    func handleHostHidden(message: IRCMessage) {
         if message.parameters.count > 1 {
             let newHost = message.parameters[1]
             self.currentSender?.hostmask = newHost

@@ -1,14 +1,37 @@
 included:
     - Sources
 disabled_rules:
-    - force_cast
-    - force_try
-    - cyclomatic_complexity
-    - function_body_length
-    - large_tuple
+    - trailing_whitespace
+line_length:
+    ignores_interpolated_strings: true
+    ignores_comments: true
+    ignores_multiline_strings: true
+    warning: 120
+    error: 200
+file_length: 2000
+large_tuple:
+    warning: 3
+    error: 5
+function_parameter_count:
+    warning: 10
+    error: 15
+function_body_length:
+    warning: 150
+cyclomatic_complexity:
+    warning: 20
+    error: 50
+    ignores_case_statements: true
 identifier_name:
     min_length: 2
     allowed_symbols: ["_"]
-    validates_start_with_lowercase: false
+    validates_start_with_lowercase: "off"
 switch_case_alignment:
     indented_cases: true
+type_body_length:
+    warning: 1000
+    error: 5000
+nesting:
+    type_level:
+        warning: 5
+    function_level:
+        warning: 3

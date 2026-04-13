@@ -55,13 +55,13 @@ public struct IRCServerInfo {
     public internal(set) var maximumRealNameLength: Int?
     public internal(set) var maximumMonitorTargets: Int?
 
-    func supportsSASLMechanism (handler: SASLHandler.Type) -> Bool {
+    func supportsSASLMechanism(handler: SASLHandler.Type) -> Bool {
         return self.supportedSASLMechanisms.contains(where: { (supportedHandler: SASLHandler.Type) -> Bool in
             return supportedHandler == handler
         })
     }
 
-    internal mutating func setServerInfo (parameters: [String]) {
+    internal mutating func setServerInfo(parameters: [String]) {
         self.serverName = parameters[1]
         self.serverVersion = parameters[2]
 
@@ -71,7 +71,7 @@ public struct IRCServerInfo {
         self.supportedChannelModes = IRCChannelMode.modeList(fromString: channelModeString)
     }
 
-    internal mutating func setSupported (parameters: [String]) {
+    internal mutating func setSupported(parameters: [String]) {
         var supportEntries = parameters
         supportEntries.removeFirst()
         supportEntries.removeLast()
@@ -145,7 +145,7 @@ public enum IRCUserMode: Character {
     case hasCloakedHostname = "x"
     case connectedViaSSL = "z"
 
-    internal static func modeList (fromString userModeString: String) -> [IRCUserMode] {
+    internal static func modeList(fromString userModeString: String) -> [IRCUserMode] {
         return Array(userModeString).compactMap({
             return IRCUserMode(rawValue: $0)
         })
@@ -181,13 +181,13 @@ public enum IRCChannelMode: Character, Hashable {
     case sslConnectionRequired = "z"
     case channelOnlyHasSecureMembers = "Z"
 
-    internal static func modeList (fromString channelModeString: String) -> [IRCChannelMode] {
+    internal static func modeList(fromString channelModeString: String) -> [IRCChannelMode] {
         return Array(channelModeString).compactMap({
             return IRCChannelMode(rawValue: $0)
         })
     }
 
-    internal static func modeMap (fromParams channelModes: [String]) -> [IRCChannelMode: String?] {
+    internal static func modeMap(fromParams channelModes: [String]) -> [IRCChannelMode: String?] {
         var modeMap: [IRCChannelMode: String?] = [:]
         var modeArgs = channelModes
         let modes = modeArgs[0]
@@ -236,7 +236,7 @@ public enum IRCv3Capability: String {
     case changeRealName = "setname"
     case strictTransportSecurity = "sts"
 
-    internal static func list (fromString capString: String) -> [IRCv3Capability] {
+    internal static func list(fromString capString: String) -> [IRCv3Capability] {
         let capStrings = Array(capString.keyValuePairs(separatedBy: " ").keys)
         return capStrings.compactMap({ capItem in
             return IRCv3Capability(rawValue: capItem)
@@ -245,7 +245,7 @@ public enum IRCv3Capability: String {
 }
 
 extension IRCv3CapabilityInfo {
-    static func from (string: String) -> IRCv3CapabilityInfo {
+    static func from(string: String) -> IRCv3CapabilityInfo {
         let availableCapabilities = string.keyValuePairs(separatedBy: " ")
         return availableCapabilities.reduce([:], { (acc: [IRCv3Capability: [String]?], kvPair: (String, String?)) ->
             [IRCv3Capability: [String]?] in
@@ -263,7 +263,7 @@ extension IRCv3CapabilityInfo {
         })
     }
 
-    func keyValuePairs (cap: IRCv3Capability) -> [String: String?]? {
+    func keyValuePairs(cap: IRCv3Capability) -> [String: String?]? {
         guard let capInfo = self[cap] else {
             return nil
         }
