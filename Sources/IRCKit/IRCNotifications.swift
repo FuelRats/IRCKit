@@ -34,6 +34,6 @@ public struct IRCClientConnectionNotification: NotificationDescriptor {
     public let name = Notification.Name("IRCConnectionDidConnect")
 }
 
-public protocol IRCNotification {
+public protocol IRCNotification: Sendable {
     var id: String { get }
 }

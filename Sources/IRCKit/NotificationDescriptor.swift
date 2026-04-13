@@ -24,8 +24,8 @@
 
 import Foundation
 
-public protocol NotificationDescriptor {
-    associatedtype Payload
+public protocol NotificationDescriptor: Sendable {
+    associatedtype Payload: Sendable
     init ()
     var name: Notification.Name { get }
     func encode(payload: Payload) -> Notification
@@ -74,7 +74,7 @@ public final class NotificationToken {
 }
 
 public extension NotificationCenter {
-    func addObserver<A: NotificationDescriptor & Sendable>(
+    func addObserver<A: NotificationDescriptor>(
         descriptor: A,
         queue: OperationQueue? = nil,
         using block: @escaping @Sendable (A.Payload) -> Void) -> NotificationToken {
@@ -85,10 +85,10 @@ public extension NotificationCenter {
         return NotificationToken(token: token, center: self)
     }
     
-    func addAsyncObserver<A: NotificationDescriptor & Sendable>(
+    func addAsyncObserver<A: NotificationDescriptor>(
         descriptor: A,
         queue: OperationQueue? = nil,
-        using block: @escaping @Sendable (A.Payload) async -> Void) -> NotificationToken where A.Payload: Sendable {
+        using block: @escaping @Sendable (A.Payload) async -> Void) -> NotificationToken {
 
         let token = addObserver(forName: descriptor.name, object: nil, queue: queue, using: { note in
             let payload = descriptor.decode(note)
