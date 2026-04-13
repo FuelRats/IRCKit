@@ -131,7 +131,7 @@ extension IRCClient {
 public struct IRCUserQuitNotification: NotificationDescriptor {
     public init () {}
     
-    public struct IRCUserQuit {
+    public struct IRCUserQuit: @unchecked Sendable {
         public let previousChannels: [IRCChannel]
         public let raw: IRCMessage
     }
@@ -143,7 +143,7 @@ public struct IRCUserQuitNotification: NotificationDescriptor {
 public struct IRCUserChangedNickNotification: NotificationDescriptor {
     public init () {}
 
-    public struct IRCNickChange: IRCNotification {
+    public struct IRCNickChange: IRCNotification, @unchecked Sendable {
         public let id: String
         public let raw: IRCMessage
         public let newNick: String

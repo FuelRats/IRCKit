@@ -24,7 +24,7 @@
 
 import Foundation
 
-public struct IRCServerInfo {
+public struct IRCServerInfo: @unchecked Sendable {
     public internal(set) var serverName: String?
     public internal(set) var serverVersion: String?
     public internal(set) var networkName: String?
@@ -124,7 +124,7 @@ public struct IRCServerInfo {
     }
 }
 
-public enum IRCUserMode: Character {
+public enum IRCUserMode: Character, Sendable {
     case isBot = "B"
     case filterPrivateMessagesByPrefix = "d"
     case filterPrivateMessagesRegOnly = "R"
@@ -152,7 +152,7 @@ public enum IRCUserMode: Character {
     }
 }
 
-public enum IRCChannelMode: Character, Hashable {
+public enum IRCChannelMode: Character, Hashable, Sendable {
     case noColorAllowed = "c"
     case noCTCPAllowed = "C"
     case delayJoinUntilMessage = "D"
@@ -217,7 +217,7 @@ public enum IRCChannelMode: Character, Hashable {
 
 typealias IRCv3CapabilityInfo = [IRCv3Capability: [String]?]
 
-public enum IRCv3Capability: String {
+public enum IRCv3Capability: String, Sendable {
     case extendedJoin = "extended-join"
     case hostnameChangeMessage = "chghost"
     case capaibilityChangeNotification = "cap-notify"
@@ -272,7 +272,7 @@ extension IRCv3CapabilityInfo {
     }
 }
 
-public enum IRCChannelType {
+public enum IRCChannelType: Sendable {
 
 }
 

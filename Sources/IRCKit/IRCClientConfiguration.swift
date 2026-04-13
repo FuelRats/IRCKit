@@ -24,7 +24,7 @@
 
 import Foundation
 
-public struct IRCClientConfiguration: Codable {
+public struct IRCClientConfiguration: Codable, Sendable {
     public init (
         serverName: String,
         serverAddress: String,

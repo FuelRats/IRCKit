@@ -24,7 +24,7 @@
 
 import Foundation
 
-public class IRCChannel: Equatable {
+public class IRCChannel: Equatable, @unchecked Sendable {
     public struct Topic {
         public internal(set) var contents: String
         public internal(set) var author: String?

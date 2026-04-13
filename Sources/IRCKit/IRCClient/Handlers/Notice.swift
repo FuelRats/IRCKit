@@ -24,7 +24,7 @@
 
 import Foundation
 
-public struct IRCServerNotice {
+public struct IRCServerNotice: Sendable {
     public let client: IRCClient
     public let destination: IRCChannel?
     public let sender: IRCSender

@@ -27,7 +27,7 @@ import NIO
 import NIOSSL
 import NIOExtras
 
-public class IRCConnection: ChannelInboundHandler {
+public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
     public typealias InboundIn = ByteBuffer
     public typealias OutboundOut = ByteBuffer
     private let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)

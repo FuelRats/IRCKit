@@ -24,8 +24,8 @@
 
 import Foundation
 
-public struct IRCChannelEvent: IRCNotification {
-    public enum ChannelEvent {
+public struct IRCChannelEvent: IRCNotification, Sendable {
+    public enum ChannelEvent: Sendable {
         case Join
         case Part
     }
@@ -281,7 +281,7 @@ public struct IRCUserLeftChannelNotification: NotificationDescriptor {
 public struct IRCChannelTopicChangeNotification: NotificationDescriptor {
     public init () {}
 
-    public struct IRCChannelTopicChange {
+    public struct IRCChannelTopicChange: @unchecked Sendable {
         public let user: IRCUser?
         public let channel: IRCChannel
         public let contents: String
@@ -295,7 +295,7 @@ public struct IRCChannelTopicChangeNotification: NotificationDescriptor {
 public struct IRCChannelKickNotification: NotificationDescriptor {
     public init () {}
 
-    public struct IRCChannelKick {
+    public struct IRCChannelKick: @unchecked Sendable {
         public let sender: IRCSender
         public let channel: IRCChannel
         public let kickedUser: IRCUser
@@ -310,7 +310,7 @@ public struct IRCChannelKickNotification: NotificationDescriptor {
 public struct IRCChannelInviteNotification: NotificationDescriptor {
     public init () {}
 
-    public struct IRCChannelInvite {
+    public struct IRCChannelInvite: @unchecked Sendable {
         public let sender: IRCSender
         public let channel: IRCChannel
         public let invitedNick: String
@@ -324,7 +324,7 @@ public struct IRCChannelInviteNotification: NotificationDescriptor {
 public struct IRCChannelModeChangeNotification: NotificationDescriptor {
     public init () {}
 
-    public struct IRCChannelModeChange {
+    public struct IRCChannelModeChange: @unchecked Sendable {
         public let user: IRCUser?
         public let channel: IRCChannel
         public let mode: IRCChannelMode
@@ -339,7 +339,7 @@ public struct IRCChannelModeChangeNotification: NotificationDescriptor {
 public struct IRCChannelUserModeChangeNotification: NotificationDescriptor {
     public init () {}
 
-    public struct IRCChannelUserModeChange {
+    public struct IRCChannelUserModeChange: @unchecked Sendable {
         public let user: IRCUser?
         public let channel: IRCChannel
         public let mode: IRCChannelUserMode

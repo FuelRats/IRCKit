@@ -26,7 +26,7 @@ import Foundation
 
 public struct IRCClientConnectionNotification: NotificationDescriptor {
     public init () {}
-    public struct IRCConnectionChange {
+    public struct IRCConnectionChange: @unchecked Sendable {
         let client: IRCClient
     }
 

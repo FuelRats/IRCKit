@@ -29,7 +29,7 @@ import Foundation
 
 public typealias ConnectCommand = (IRCClient) -> Void
 
-open class IRCClient: IRCConnectionDelegate {
+open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
     public let id: UUID
     internal let connection: IRCConnection
     public var configuration: IRCClientConfiguration
@@ -37,9 +37,8 @@ open class IRCClient: IRCConnectionDelegate {
         willSet {
             #if os(Linux)
             #else
-            nonisolated(unsafe) let client = self
-            DispatchQueue.main.async {
-                client.objectWillChange.send()
+            DispatchQueue.main.async { [self] in
+                self.objectWillChange.send()
             }
             #endif
         }
@@ -48,9 +47,8 @@ open class IRCClient: IRCConnectionDelegate {
         willSet {
             #if os(Linux)
             #else
-            nonisolated(unsafe) let client = self
-            DispatchQueue.main.async {
-                client.objectWillChange.send()
+            DispatchQueue.main.async { [self] in
+                self.objectWillChange.send()
             }
             #endif
         }

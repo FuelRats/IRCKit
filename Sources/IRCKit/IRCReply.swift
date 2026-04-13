@@ -24,7 +24,7 @@
 
 import Foundation
 
-public enum IRCReply: String {
+public enum IRCReply: String, Sendable {
     case PING
     case ERROR
     case CAP

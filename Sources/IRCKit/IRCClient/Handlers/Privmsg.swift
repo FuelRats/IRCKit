@@ -24,7 +24,7 @@
 
 import Foundation
 
-public struct IRCPrivateMessage: IRCNotification {
+public struct IRCPrivateMessage: IRCNotification, Sendable {
     public let id: String
     public let client: IRCClient
     public let destination: IRCChannel

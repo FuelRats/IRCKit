@@ -24,7 +24,7 @@
 
 import Foundation
 
-public class IRCUser {
+public class IRCUser: @unchecked Sendable {
     public let client: IRCClient
     public internal(set) var nickname: String
     public internal(set) var username: String
@@ -97,7 +97,7 @@ public class IRCUser {
     }
 }
 
-public enum IRCChannelUserMode: Character {
+public enum IRCChannelUserMode: Character, Sendable {
     case owner = "q"
     case admin = "a"
     case `operator` = "o"

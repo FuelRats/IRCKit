@@ -24,7 +24,7 @@
 
 import Foundation
 
-public struct IRCSender: CustomStringConvertible {
+public struct IRCSender: CustomStringConvertible, Sendable {
     public var nickname: String
     public var username: String?
     public var hostmask: String?

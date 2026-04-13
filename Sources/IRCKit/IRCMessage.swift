@@ -24,7 +24,7 @@
 
 import Foundation
 
-public struct IRCMessage {
+public struct IRCMessage: Sendable {
     public let client: IRCClient
     public let command: IRCReply
     public let messageTags: [String: String]
