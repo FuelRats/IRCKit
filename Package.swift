@@ -17,6 +17,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.36.0"),
         .package(url: "https://github.com/apple/swift-nio-extras.git", from: "1.33.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.9.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.6.0"),
     ],
     targets: [
         .target(
@@ -26,6 +27,7 @@ let package = Package(
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "NIOExtras", package: "swift-nio-extras"),
                 "CryptoSwift",
+                .product(name: "Logging", package: "swift-log"),
             ]),
         .testTarget(
             name: "IRCKitTests",

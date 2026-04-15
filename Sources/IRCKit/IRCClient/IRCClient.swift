@@ -23,6 +23,7 @@
  */
 
 import Foundation
+import Logging
 #if canImport(Combine)
     import Combine
 #endif
@@ -31,6 +32,7 @@ public typealias ConnectCommand = (IRCClient) -> Void
 
 open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
     public let id: UUID
+    public let logger: Logger
     internal let connection: IRCConnection
     public var configuration: IRCClientConfiguration
     public internal(set) var serverInfo = IRCServerInfo() {
@@ -87,12 +89,13 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
         }
     }
 
-    public init (configuration: IRCClientConfiguration) {
+    public init (configuration: IRCClientConfiguration, logger: Logger? = nil) {
         self.id = UUID()
+        self.logger = logger ?? Logger(label: "IRCKit")
         self.configuration = configuration
         self.currentNick = configuration.nickname
 
-        guard let connection = try? IRCConnection(configuration: configuration) else {
+        guard let connection = try? IRCConnection(configuration: configuration, logger: self.logger) else {
             fatalError("Failed to initialize IRC connection")
         }
         self.connection = connection
@@ -108,7 +111,7 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
     }
 
     public func didConnectToHost() {
-        print("Connected")
+        logger.info("Connected")
 
         self.sendRegistration()
         IRCClientConnectionNotification().encode(payload:
@@ -124,7 +127,7 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
 
         switch message.command {
             case .ERROR:
-                print("Disconnecting due to error")
+                logger.warning("Disconnecting due to error")
                 self.connection.disconnect()
 
             case .PING:

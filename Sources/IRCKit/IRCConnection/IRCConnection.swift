@@ -23,6 +23,7 @@
  */
 
 import Foundation
+import Logging
 import NIO
 import NIOSSL
 import NIOExtras
@@ -43,10 +44,12 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
 
     private let id: UUID
     private let configuration: IRCClientConfiguration
+    let logger: Logger
     weak var delegate: IRCConnectionDelegate?
 
-    init? (configuration: IRCClientConfiguration) throws {
+    init? (configuration: IRCClientConfiguration, logger: Logger) throws {
         self.id = UUID()
+        self.logger = logger
         self.configuration = configuration
 
         let verification = configuration.allowsServerSelfSignedCertificate ?
@@ -120,7 +123,7 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
 
         self.pingTimer = group.next().scheduleRepeatedTask(initialDelay: .seconds(30), delay: .seconds(30), { _ in
             if self.lastReceivedMessage == nil || Date().timeIntervalSince(self.lastReceivedMessage!) > 120 {
-                print("Connection timeout")
+                self.logger.warning("Connection timeout")
                 self.disconnect()
             }
         })
@@ -135,7 +138,7 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
         }
 
         let connectionTime: Int64 = 2 << self.connectionAttempts
-        print("Attempting reconnect in \(connectionTime) seconds")
+        logger.info("Attempting reconnect in \(connectionTime) seconds")
         self.connectionTimer = group.next().scheduleTask(in: .seconds(connectionTime), {
             self.connectionAttempts += 1
             self.connect()
@@ -163,19 +166,17 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
             return
         }
 
-        #if DEBUG
-        print("< \(received)")
-        #endif
+        logger.trace("< \(received)")
         self.delegate?.didReceiveDataFromConnection(data: received)
     }
 
     public func errorCaught(context: ChannelHandlerContext, error: Error) {
-        print("Connection closed due to an error: \(String(describing: error))")
+        logger.error("Connection closed due to an error: \(String(describing: error))")
         context.close(promise: nil)
     }
 
     func connect() {
-        print("Connecting to \(self.configuration.serverAddress):\(self.configuration.serverPort)")
+        logger.info("Connecting to \(self.configuration.serverAddress):\(self.configuration.serverPort)")
         self.bootstrap?.connect(
             host: self.configuration.serverAddress,
             port: self.configuration.serverPort
@@ -185,7 +186,7 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
                     self.channel = channel
 
                 case .failure:
-                    print("Failed to connect to server")
+                    self.logger.error("Failed to connect to server")
                     self.connectionFailed()
             }
         })
@@ -204,9 +205,7 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
 
             self.floodControlMessages += 1
 
-            #if DEBUG
-            print("> \(message)")
-            #endif
+            logger.trace("> \(message)")
         }
     }
 
