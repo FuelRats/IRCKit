@@ -26,7 +26,9 @@ import Foundation
 
 extension IRCClient {
     func handleIRCv3CapabilityReply(message: IRCMessage) {
-        let capProtocolCommand = message.parameters[1]
+        guard let capProtocolCommand = message.parameters[safe: 1] else {
+            return
+        }
         switch capProtocolCommand {
             case "LS":
                 capNegotiation(message: message)
@@ -46,7 +48,9 @@ extension IRCClient {
         // final line omits the `*`. Accumulate the tokens and only negotiate once the
         // complete list has arrived.
         let isMultilineContinuation = message.parameters.count > 3 && message.parameters[2] == "*"
-        let capString = isMultilineContinuation ? message.parameters[3] : message.parameters[2]
+        guard let capString = message.parameters[safe: isMultilineContinuation ? 3 : 2] else {
+            return
+        }
 
         if self.capabilityLSBuffer.isEmpty {
             self.capabilityLSBuffer = capString
@@ -63,7 +67,7 @@ extension IRCClient {
 
         let caps = IRCv3CapabilityInfo.from(string: fullCapString)
         if let strictTransportInfo = caps.keyValuePairs(cap: .strictTransportSecurity) {
-            if let port = Int.parse(strictTransportInfo["port"]!), port != self.configuration.serverPort {
+            if let port = Int.parse(strictTransportInfo["port"] ?? nil), port != self.configuration.serverPort {
                 self.configuration.serverPort = port
                 self.configuration.prefersInsecureConnection = false
                 self.connection.disconnect()
@@ -77,10 +81,14 @@ extension IRCClient {
     }
 
     func capNegotiationComplete(message: IRCMessage) {
-        let acceptedCapabilities = IRCv3Capability.list(fromString: message.parameters[2])
+        guard let capList = message.parameters[safe: 2] else {
+            self.send(command: .CAP, parameters: ["END"])
+            return
+        }
+        let acceptedCapabilities = IRCv3Capability.list(fromString: capList)
         self.serverInfo.enabledIRCv3Capabilities = acceptedCapabilities
 
-        let caps = IRCv3CapabilityInfo.from(string: message.parameters[2])
+        let caps = IRCv3CapabilityInfo.from(string: capList)
         if let saslCap = caps[.sasl] as? [String] {
             let mechanisms = saslCap.compactMap({ (serverMechanism: String) -> SASLHandler.Type? in
                 return IRCClient.supportedHandlers.first(where: { (clientHandler: SASLHandler.Type) -> Bool in

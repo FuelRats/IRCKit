@@ -48,7 +48,11 @@ extension IRCClient {
             return
         }
 
-        if let channel = self.getChannel(named: message.parameters[0]) {
+        guard let target = message.parameters[safe: 0] else {
+            return
+        }
+
+        if let channel = self.getChannel(named: target) {
             self.handleChannelPrivmsgEvent(message: message, channel: channel)
         } else {
             self.handleNonChannelPrivmsgEvent(message: message)
@@ -60,11 +64,15 @@ extension IRCClient {
         guard let sender = message.sender else {
             return
         }
-        var user = IRCUser(fromPrivateMessage: message, onClient: self)
-        let destination = self.getChannel(named: message.parameters[0])
+        guard let target = message.parameters[safe: 0], let messageContents = message.parameters[safe: 1] else {
+            return
+        }
+        guard var user = IRCUser(fromPrivateMessage: message, onClient: self) else {
+            return
+        }
+        let destination = self.getChannel(named: target)
             ?? IRCChannel(privateMessage: user, onClient: self)
         user = destination.member(fromSender: sender) ?? user
-        let messageContents = message.parameters[1]
         
         IRCEchoMessageNotification().encode(payload: IRCPrivateMessage(
             id: message.label,
@@ -81,7 +89,9 @@ extension IRCClient {
             return
         }
 
-        var messageContents = message.parameters[1]
+        guard var messageContents = message.parameters[safe: 1] else {
+            return
+        }
 
         if message.isCTCPRequest {
             messageContents.remove(at: messageContents.startIndex)
@@ -124,11 +134,13 @@ extension IRCClient {
     }
 
     func handleNonChannelPrivmsgEvent(message: IRCMessage) {
-        guard message.sender != nil else {
+        guard var messageContents = message.parameters[safe: 1] else {
             return
         }
-
-        var messageContents = message.parameters[1]
+        guard let user = IRCUser(fromPrivateMessage: message, onClient: self) else {
+            return
+        }
+        let destination = IRCChannel(privateMessage: user, onClient: self)
 
         if message.isCTCPRequest {
             messageContents.remove(at: messageContents.startIndex)
@@ -138,8 +150,6 @@ extension IRCClient {
                 messageContents = String(messageContents.suffix(
                     from: messageContents.index(messageContents.startIndex, offsetBy: 7))
                 )
-                let user = IRCUser(fromPrivateMessage: message, onClient: self)
-                let destination = IRCChannel(privateMessage: user, onClient: self)
 
                 IRCPrivateActionMessageNotification().encode(payload: IRCPrivateMessage(
                     id: message.label,
@@ -150,9 +160,6 @@ extension IRCClient {
                     raw: message
                 )).post()
             } else {
-                let user = IRCUser(fromPrivateMessage: message, onClient: self)
-                let destination = IRCChannel(privateMessage: user, onClient: self)
-
                 IRCPrivateCTCPRequestNotification().encode(payload: IRCPrivateMessage(
                     id: message.label,
                     client: self,
@@ -163,9 +170,6 @@ extension IRCClient {
                 )).post()
             }
         } else {
-            let user = IRCUser(fromPrivateMessage: message, onClient: self)
-            let destination = IRCChannel(privateMessage: user, onClient: self)
-
             IRCPrivateMessageNotification().encode(payload: IRCPrivateMessage(
                 id: message.label,
                 client: self,

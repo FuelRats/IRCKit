@@ -38,7 +38,11 @@ extension IRCClient {
             return
         }
 
-        if let channel = self.getChannel(named: message.parameters[0]) {
+        guard let target = message.parameters[safe: 0] else {
+            return
+        }
+
+        if let channel = self.getChannel(named: target) {
             self.handleChannelNoticeEvent(message: message, channel: channel)
         } else {
             self.handleNonChannelNoticeEvent(message: message)
@@ -51,7 +55,9 @@ extension IRCClient {
             return
         }
 
-        var messageContents = message.parameters[1]
+        guard var messageContents = message.parameters[safe: 1] else {
+            return
+        }
         if sender.isServer {
             IRCChannelServerNoticeNotification().encode(payload: IRCServerNotice(
                 client: message.client,
@@ -99,7 +105,9 @@ extension IRCClient {
             return
         }
 
-        var messageContents = message.parameters[1]
+        guard var messageContents = message.parameters[safe: 1] else {
+            return
+        }
 
         if sender.isServer {
             IRCPrivateServerNoticeNotification().encode(payload: IRCServerNotice(
@@ -112,7 +120,9 @@ extension IRCClient {
             return
         }
 
-        let user = IRCUser(fromPrivateMessage: message, onClient: self)
+        guard let user = IRCUser(fromPrivateMessage: message, onClient: self) else {
+            return
+        }
         let destination = IRCChannel(privateMessage: user, onClient: self)
 
         if message.isCTCPReply {

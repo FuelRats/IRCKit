@@ -129,13 +129,23 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
             return
         }
 
+        guard message.parameters.count >= message.command.minimumParameterCount else {
+            let command = message.command.rawValue
+            let minimum = message.command.minimumParameterCount
+            logger.trace("Ignoring \(command): expected at least \(minimum) parameters, got \(message.parameters.count)")
+            return
+        }
+
         switch message.command {
             case .ERROR:
                 logger.warning("Disconnecting due to error")
                 self.connection.disconnect()
 
             case .PING:
-                self.send(command: .PONG, parameters: [":\(message.parameters[0])"])
+                guard let token = message.parameters[safe: 0] else {
+                    break
+                }
+                self.send(command: .PONG, parameters: [":\(token)"])
 
             case .RPL_WELCOME:
                 if

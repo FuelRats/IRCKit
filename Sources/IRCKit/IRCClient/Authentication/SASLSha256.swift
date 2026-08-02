@@ -37,7 +37,10 @@ class Sha256SASLHandler: SASLHandler {
     }
 
     func handleResponse(message: IRCMessage) {
-        if message.parameters[0] == "+" {
+        guard let response = message.parameters[safe: 0] else {
+            return
+        }
+        if response == "+" {
             self.sendAuthenticationChallenge()
         } else {
             parseSASLScramResponse(message: message)
@@ -60,7 +63,8 @@ class Sha256SASLHandler: SASLHandler {
 
     func parseSASLScramResponse(message: IRCMessage) {
         guard
-            let scramData = Data(base64Encoded: message.parameters[0]),
+            let response = message.parameters[safe: 0],
+            let scramData = Data(base64Encoded: response),
             let scramMessage = String(data: scramData, encoding: .utf8)
         else {
             return

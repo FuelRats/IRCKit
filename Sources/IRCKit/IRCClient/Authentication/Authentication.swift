@@ -73,10 +73,13 @@ extension IRCClient {
             return
         }
 
+        guard let account = message.parameters[safe: 0] else {
+            return
+        }
+
         for channel in self.channels {
             if let member = channel.member(fromSender: sender) {
-
-                member.account = message.parameters[0] != "*" ? message.parameters[0] : nil
+                member.account = account != "*" ? account : nil
                 channel.set(member: member)
             }
         }

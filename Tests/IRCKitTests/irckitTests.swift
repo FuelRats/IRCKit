@@ -8,7 +8,7 @@ final class irckitTests: XCTestCase {
         // results.
     }
 
-    static var allTests = [
-        ("testExample", testExample),
+    static let allTests = [
+        ("testExample", testExample)
     ]
 }

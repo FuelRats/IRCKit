@@ -53,17 +53,20 @@ extension IRCClient {
             account: nil
         )
 
+        guard let channelName = message.parameters[safe: 0] else {
+            return
+        }
+
         if self.hasIRCv3Capability(.extendedJoin) {
-            let account = message.parameters[1]
-            if account != "*" {
+            if let account = message.parameters[safe: 1], account != "*" {
                 user.account = account
             }
 
-            user.realName = message.parameters[2]
+            user.realName = message.parameters[safe: 2]
         }
 
         if sender.isCurrentUser(client: self) {
-            let channel = IRCChannel(channelName: message.parameters[0], onClient: self)
+            let channel = IRCChannel(channelName: channelName, onClient: self)
             channel.add(member: user)
             self.addChannel(channel: channel)
 
@@ -84,7 +87,7 @@ extension IRCClient {
                 raw: message
             )).post()
         } else {
-            guard let channel = self.getChannel(named: message.parameters[0]) else {
+            guard let channel = self.getChannel(named: channelName) else {
                 return
             }
             channel.set(member: user)
@@ -105,7 +108,11 @@ extension IRCClient {
             return
         }
 
-        guard let channel = self.getChannel(named: message.parameters[0]) else {
+        guard let channelName = message.parameters[safe: 0] else {
+            return
+        }
+
+        guard let channel = self.getChannel(named: channelName) else {
             return
         }
         guard let user = channel.member(fromSender: sender) else {
@@ -114,14 +121,14 @@ extension IRCClient {
         channel.remove(member: user)
 
         if sender.isCurrentUser(client: self) {
-            self.removeChannel(named: message.parameters[0])
+            self.removeChannel(named: channelName)
         }
 
         IRCUserLeftChannelNotification().encode(payload: IRCChannelEvent(
             id: message.label,
             user: user,
             channel: channel,
-            message: message.parameters[safe: 0],
+            message: message.parameters[safe: 1],
             event: .Part,
             raw: message
         )).post()
@@ -132,18 +139,22 @@ extension IRCClient {
             return
         }
 
-        guard let channel = self.getChannel(named: message.parameters[0]) else {
+        guard let channelName = message.parameters[safe: 0], let kickTarget = message.parameters[safe: 1] else {
             return
         }
 
-        guard let kickUser = channel.member(named: message.parameters[1]) else {
+        guard let channel = self.getChannel(named: channelName) else {
+            return
+        }
+
+        guard let kickUser = channel.member(named: kickTarget) else {
             return
         }
 
         channel.remove(member: kickUser)
 
         if sender.isCurrentUser(client: self) {
-            self.removeChannel(named: message.parameters[0])
+            self.removeChannel(named: channelName)
         }
 
         IRCChannelKickNotification().encode(payload: IRCChannelKickNotification.IRCChannelKick(
@@ -160,14 +171,18 @@ extension IRCClient {
             return
         }
 
-        guard let channel = self.getChannel(named: message.parameters[0]) else {
+        guard let channelName = message.parameters[safe: 0], let invitedNick = message.parameters[safe: 1] else {
+            return
+        }
+
+        guard let channel = self.getChannel(named: channelName) else {
             return
         }
 
         IRCChannelInviteNotification().encode(payload: IRCChannelInviteNotification.IRCChannelInvite(
             sender: sender,
             channel: channel,
-            invitedNick: message.parameters[1],
+            invitedNick: invitedNick,
             raw: message
         )).post()
     }
@@ -177,30 +192,37 @@ extension IRCClient {
             return
         }
 
-        guard let channel = self.getChannel(named: message.parameters[0]) else {
+        guard let channelName = message.parameters[safe: 0], let topicContents = message.parameters[safe: 1] else {
             return
         }
-        channel.topic = IRCChannel.Topic(contents: message.parameters[1], author: sender.nickname, date: message.time)
+
+        guard let channel = self.getChannel(named: channelName) else {
+            return
+        }
+        channel.topic = IRCChannel.Topic(contents: topicContents, author: sender.nickname, date: message.time)
 
         let user = channel.member(fromSender: sender)
 
         IRCChannelTopicChangeNotification().encode(payload: IRCChannelTopicChangeNotification.IRCChannelTopicChange(
             user: user,
             channel: channel,
-            contents: message.parameters[1],
+            contents: topicContents,
             raw: message
         )).post()
     }
 
     func handleChannelModeChangeEvent(message: IRCMessage) {
-        guard let channel = self.getChannel(named: message.parameters[0]) else {
+        guard let channelName = message.parameters[safe: 0], let modes = message.parameters[safe: 1] else {
             return
         }
 
-        let modes = message.parameters[1]
+        guard let channel = self.getChannel(named: channelName) else {
+            return
+        }
+
         var modeArgs = message.parameters[2...]
         var revoking = false
-        let user = channel.member(fromSender: message.sender!)
+        let user = message.sender.flatMap({ channel.member(fromSender: $0) })
 
         for modeChar in Array(modes) {
             if modeChar == "+" {
