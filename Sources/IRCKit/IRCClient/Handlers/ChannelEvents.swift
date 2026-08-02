@@ -171,13 +171,13 @@ extension IRCClient {
             return
         }
 
-        guard let channelName = message.parameters[safe: 0], let invitedNick = message.parameters[safe: 1] else {
+        // INVITE is `<invited nick> <channel>`. The channel is often one we are not a member of
+        // (a plain invite), so fall back to a transient channel when it is not already tracked.
+        guard let invitedNick = message.parameters[safe: 0], let channelName = message.parameters[safe: 1] else {
             return
         }
 
-        guard let channel = self.getChannel(named: channelName) else {
-            return
-        }
+        let channel = self.getChannel(named: channelName) ?? IRCChannel(channelName: channelName, onClient: self)
 
         IRCChannelInviteNotification().encode(payload: IRCChannelInviteNotification.IRCChannelInvite(
             sender: sender,

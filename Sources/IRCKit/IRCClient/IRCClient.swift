@@ -221,7 +221,7 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
                 handleChannelKickEvent(message: message)
 
             case .INVITE:
-                handleChannelKickEvent(message: message)
+                handleChannelInviteEvent(message: message)
 
             case .MODE:
                 handleChannelModeChangeEvent(message: message)
@@ -234,6 +234,12 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
 
             case .RPL_HOSTISHIDDEN:
                 handleHostHidden(message: message)
+
+            case .RPL_MONONLINE:
+                handleMonitorOnlineEvent(message: message)
+
+            case .RPL_MONOFFLINE:
+                handleMonitorOfflineEvent(message: message)
 
             default:
                 break
