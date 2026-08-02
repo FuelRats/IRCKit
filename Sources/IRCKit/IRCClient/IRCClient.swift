@@ -67,6 +67,10 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
     var activeAuthenticationHandler: SASLHandler?
     var isExpectingWhoisResponse = false
 
+    // Accumulates capability tokens across a multi-line `CAP LS 302` reply, which the
+    // server sends when the capability list exceeds one IRC message.
+    var capabilityLSBuffer: String = ""
+
     public var monitor: Set<String> = [] {
         didSet {
             if self.connection.connected && self.serverInfo.supportsMonitor {
