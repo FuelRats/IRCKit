@@ -40,7 +40,28 @@ extension IRCClient {
     }
 
     func capNegotiation(message: IRCMessage) {
-        let caps = IRCv3CapabilityInfo.from(string: message.parameters[2])
+        // A `CAP LS 302` reply is split over multiple messages when the capability list
+        // is too long for a single line. Continuation lines have the form
+        // `CAP <client> LS * :<caps>` (a `*` in place of the trailing cap list); the
+        // final line omits the `*`. Accumulate the tokens and only negotiate once the
+        // complete list has arrived.
+        let isMultilineContinuation = message.parameters.count > 3 && message.parameters[2] == "*"
+        let capString = isMultilineContinuation ? message.parameters[3] : message.parameters[2]
+
+        if self.capabilityLSBuffer.isEmpty {
+            self.capabilityLSBuffer = capString
+        } else if capString.isEmpty == false {
+            self.capabilityLSBuffer += " " + capString
+        }
+
+        if isMultilineContinuation {
+            return
+        }
+
+        let fullCapString = self.capabilityLSBuffer
+        self.capabilityLSBuffer = ""
+
+        let caps = IRCv3CapabilityInfo.from(string: fullCapString)
         if let strictTransportInfo = caps.keyValuePairs(cap: .strictTransportSecurity) {
             if let port = Int.parse(strictTransportInfo["port"]!), port != self.configuration.serverPort {
                 self.configuration.serverPort = port
