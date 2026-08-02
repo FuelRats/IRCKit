@@ -123,7 +123,7 @@ public struct IRCMessage: Sendable {
             guard let key = tagComponents.first, key.isEmpty == false else {
                 return
             }
-            tags[String(key)] = tagComponents.count > 1 ? String(tagComponents[1]) : nil
+            tags[String(key)] = tagComponents.count > 1 ? String(tagComponents[1]).ircTagValueUnescaped() : nil
         })
     }
 }

@@ -288,7 +288,7 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
         if tags.count > 0 && self.hasIRCv3Capability(.messageTags) {
             let tagString = tags.map({ (key, value) -> String in
                 if let value = value {
-                    return "\(key)=\(value)"
+                    return "\(key)=\(value.ircTagValueEscaped())"
                 }
                 return key
             }).joined(separator: ";")

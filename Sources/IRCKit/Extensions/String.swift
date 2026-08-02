@@ -92,4 +92,48 @@ extension String {
         return randomString
     }
 
+    /// Escapes this string for use as an IRCv3 message-tag value, per the message-tags spec:
+    /// `\` → `\\`, `;` → `\:`, space → `\s`, CR → `\r`, LF → `\n`.
+    func ircTagValueEscaped() -> String {
+        var escaped = ""
+        escaped.reserveCapacity(self.count)
+        for character in self {
+            switch character {
+                case "\\": escaped += "\\\\"
+                case ";": escaped += "\\:"
+                case " ": escaped += "\\s"
+                case "\r": escaped += "\\r"
+                case "\n": escaped += "\\n"
+                default: escaped.append(character)
+            }
+        }
+        return escaped
+    }
+
+    /// Reverses IRCv3 message-tag value escaping. Unrecognised escape sequences resolve to the
+    /// escaped character itself, and a trailing lone backslash is dropped, both per the spec.
+    func ircTagValueUnescaped() -> String {
+        var unescaped = ""
+        unescaped.reserveCapacity(self.count)
+        var iterator = self.makeIterator()
+        while let character = iterator.next() {
+            guard character == "\\" else {
+                unescaped.append(character)
+                continue
+            }
+            guard let escaped = iterator.next() else {
+                break
+            }
+            switch escaped {
+                case ":": unescaped.append(";")
+                case "s": unescaped.append(" ")
+                case "\\": unescaped.append("\\")
+                case "r": unescaped.append("\r")
+                case "n": unescaped.append("\n")
+                default: unescaped.append(escaped)
+            }
+        }
+        return unescaped
+    }
+
 }
