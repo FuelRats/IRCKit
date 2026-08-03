@@ -34,3 +34,14 @@ extension DateFormatter {
     return formatter
   }()
 }
+
+extension Date {
+    /// Parses an IRC server timestamp, expressed as whole seconds since the Unix epoch (e.g. the
+    /// `setat` field of RPL_TOPICWHOTIME and the creation time of RPL_CREATIONTIME).
+    static func fromUnixTimestamp(_ string: String) -> Date? {
+        guard let seconds = TimeInterval(string) else {
+            return nil
+        }
+        return Date(timeIntervalSince1970: seconds)
+    }
+}

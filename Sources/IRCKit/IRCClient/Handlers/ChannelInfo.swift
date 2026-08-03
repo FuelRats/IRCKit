@@ -121,7 +121,7 @@ extension IRCClient {
                 guard
                     let author = message.parameters[safe: 2],
                     let dateString = message.parameters[safe: 3],
-                    let date = DateFormatter.iso8601Full.date(from: dateString)
+                    let date = Date.fromUnixTimestamp(dateString)
                 else {
                     return
                 }
@@ -158,7 +158,7 @@ extension IRCClient {
 
         guard
             let createdString = message.parameters[safe: 2],
-            let date = DateFormatter.iso8601Full.date(from: createdString)
+            let date = Date.fromUnixTimestamp(createdString)
         else {
             return
         }
