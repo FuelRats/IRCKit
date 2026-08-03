@@ -59,6 +59,15 @@ extension String {
         return tokens.keyValuePairs()
     }
 
+    /// Removes the characters forbidden inside an IRC parameter (NUL, CR, LF) so caller-supplied
+    /// text cannot terminate the line and inject additional commands. Filtering operates on unicode
+    /// scalars because Swift treats a CR+LF pair as a single grapheme cluster.
+    func ircParameterSanitized() -> String {
+        return String(String.UnicodeScalarView(self.unicodeScalars.filter({
+            $0 != "\0" && $0 != "\r" && $0 != "\n"
+        })))
+    }
+
     static func random(length: Int = 20) -> String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var randomString: String = ""

@@ -145,7 +145,7 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
                 guard let token = message.parameters[safe: 0] else {
                     break
                 }
-                self.send(command: .PONG, parameters: [":\(token)"])
+                self.send(command: .PONG, parameters: [token])
 
             case .RPL_WELCOME:
                 if
@@ -271,15 +271,16 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
 
     public func send(_ command: String, parameters: [String], tags: [String: String?] = [:]) {
         var tags = tags
-        var params = parameters
+        // Strip NUL/CR/LF so caller-supplied text cannot inject additional commands into the stream.
+        var params = parameters.map({ $0.ircParameterSanitized() })
         if self.hasIRCv3Capability(.labeledResponses) && tags["label"] == nil {
             tags["label"] = String.random(length: 10)
         }
 
-        /* In IRC if a command has more than one argument,
-         the last argument can contain spaces if it is prefixed with : */
-        let lastParam = params.last ?? ""
-        if params.count > 1 && lastParam.components(separatedBy: .whitespaces).count > 1 {
+        /* The last argument is the "trailing" parameter and must be prefixed with ':' when it is
+         empty, contains a space, or itself begins with ':', otherwise the server would misparse it
+         (for example a one-word message ":)" would be read as an empty trailing parameter). */
+        if let lastParam = params.last, lastParam.isEmpty || lastParam.contains(" ") || lastParam.hasPrefix(":") {
             params[params.count - 1] = ":" + lastParam
         }
 
