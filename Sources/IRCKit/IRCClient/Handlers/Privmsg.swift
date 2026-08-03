@@ -43,7 +43,7 @@ public struct IRCPrivateMessage: IRCNotification, Sendable {
 
 extension IRCClient {
     func handlePrivmsgEvent(message: IRCMessage) {
-        if message.sender?.nickname == self.currentNick {
+        if let senderNick = message.sender?.nickname, self.isSameName(senderNick, self.currentNick) {
             self.handleEchoPrivmsgEvent(message: message)
             return
         }

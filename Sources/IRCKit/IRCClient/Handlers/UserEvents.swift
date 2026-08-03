@@ -50,7 +50,7 @@ extension IRCClient {
             return
         }
 
-        if sender.nickname == self.currentNick {
+        if self.isSameName(sender.nickname, self.currentNick) {
             var newSender = sender
             newSender.nickname = newNick
             self.currentNick = newNick
@@ -109,7 +109,7 @@ extension IRCClient {
             return
         }
 
-        if sender.nickname == self.currentNick {
+        if self.isSameName(sender.nickname, self.currentNick) {
             self.currentSender?.username = newUser
             self.currentSender?.hostmask = newHost
         }

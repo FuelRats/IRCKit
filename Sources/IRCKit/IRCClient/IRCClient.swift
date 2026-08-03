@@ -246,19 +246,32 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
         }
     }
 
+    /// Folds a nickname or channel name using the server's CASEMAPPING, for case-insensitive
+    /// comparison of the two.
+    func caseFold(_ name: String) -> String {
+        return name.ircCaseFolded(mapping: self.serverInfo.caseMapping)
+    }
+
+    /// Whether two nicknames or channel names refer to the same entity under the server's CASEMAPPING.
+    func isSameName(_ lhs: String, _ rhs: String) -> Bool {
+        return self.caseFold(lhs) == self.caseFold(rhs)
+    }
+
     func getChannel(named channelName: String) -> IRCChannel? {
-        return self.channels.first(where: { $0.name == channelName })
+        let target = self.caseFold(channelName)
+        return self.channels.first(where: { self.caseFold($0.name) == target })
     }
 
     func addChannel(channel: IRCChannel) {
-        guard self.channels.first(where: { $0.name == channel.name }) == nil else {
+        guard self.getChannel(named: channel.name) == nil else {
             return
         }
         self.channels.append(channel)
     }
 
     func removeChannel(named channelName: String) {
-        self.channels.removeAll(where: { $0.name == channelName })
+        let target = self.caseFold(channelName)
+        self.channels.removeAll(where: { self.caseFold($0.name) == target })
     }
 
     public func send(command: IRCCommand, parameters: String...) {

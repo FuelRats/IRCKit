@@ -34,7 +34,7 @@ public struct IRCServerNotice: Sendable {
 
 extension IRCClient {
     func handleNoticeEvent(message: IRCMessage) {
-        if message.sender?.nickname == self.currentNick {
+        if let senderNick = message.sender?.nickname, self.isSameName(senderNick, self.currentNick) {
             return
         }
 

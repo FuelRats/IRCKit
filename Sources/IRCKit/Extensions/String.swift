@@ -68,6 +68,35 @@ extension String {
         })))
     }
 
+    /// Folds a nickname or channel name to a canonical lowercase form for case-insensitive
+    /// comparison, honouring the server's CASEMAPPING (RFC 2812 §2.2). `rfc1459` additionally treats
+    /// `[]\~` as the uppercase forms of `{}|^`; `rfc1459-strict` does the same except for `~`;
+    /// `ascii` folds only A–Z. Defaults to `rfc1459` when the server has not advertised a mapping.
+    func ircCaseFolded(mapping: String?) -> String {
+        let mapping = mapping?.lowercased() ?? "rfc1459"
+        let foldsBrackets = mapping == "rfc1459" || mapping == "rfc1459-strict"
+        let foldsTilde = mapping == "rfc1459"
+
+        var folded = String.UnicodeScalarView()
+        for scalar in self.unicodeScalars {
+            switch scalar.value {
+                case 0x41...0x5A:  // A–Z
+                    folded.append(UnicodeScalar(scalar.value + 32) ?? scalar)
+                case 0x5B where foldsBrackets:  // [
+                    folded.append("{")
+                case 0x5D where foldsBrackets:  // ]
+                    folded.append("}")
+                case 0x5C where foldsBrackets:  // \
+                    folded.append("|")
+                case 0x7E where foldsTilde:  // ~
+                    folded.append("^")
+                default:
+                    folded.append(scalar)
+            }
+        }
+        return String(folded)
+    }
+
     static func random(length: Int = 20) -> String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var randomString: String = ""
