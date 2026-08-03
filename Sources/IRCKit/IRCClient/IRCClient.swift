@@ -71,6 +71,10 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
     // server sends when the capability list exceeds one IRC message.
     var capabilityLSBuffer: String = ""
 
+    // True once the initial capability handshake has finished (CAP END sent). Used to distinguish a
+    // mid-session CAP ACK/NAK (from a cap-notify CAP NEW) from the registration handshake.
+    var capabilityNegotiationComplete = false
+
     public var monitor: Set<String> = [] {
         didSet {
             if self.connection.connected && self.serverInfo.supportsMonitor {

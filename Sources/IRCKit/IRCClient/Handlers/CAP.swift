@@ -36,6 +36,10 @@ extension IRCClient {
                 capNegotiationComplete(message: message)
             case "NAK":
                 capNegotiationFailed(message: message)
+            case "NEW":
+                capabilitiesAdded(message: message)
+            case "DEL":
+                capabilitiesRemoved(message: message)
             default:
                 break
         }
@@ -82,11 +86,22 @@ extension IRCClient {
 
     func capNegotiationComplete(message: IRCMessage) {
         guard let capList = message.parameters[safe: 2] else {
-            self.send(command: .CAP, parameters: ["END"])
+            if self.capabilityNegotiationComplete == false {
+                self.endCapabilityNegotiation()
+            }
             return
         }
+
         let acceptedCapabilities = IRCv3Capability.list(fromString: capList)
-        self.serverInfo.enabledIRCv3Capabilities = acceptedCapabilities
+        for capability in acceptedCapabilities where self.hasIRCv3Capability(capability) == false {
+            self.serverInfo.enabledIRCv3Capabilities.append(capability)
+        }
+
+        // An ACK received after the initial handshake (e.g. in response to a CAP NEW) only updates
+        // the enabled set; it must not restart SASL or re-send CAP END.
+        guard self.capabilityNegotiationComplete == false else {
+            return
+        }
 
         let caps = IRCv3CapabilityInfo.from(string: capList)
         if let saslCap = caps[.sasl] as? [String] {
@@ -107,10 +122,43 @@ extension IRCClient {
                 return
             }
         }
-        self.send(command: .CAP, parameters: ["END"])
+        self.endCapabilityNegotiation()
     }
 
     func capNegotiationFailed(message: IRCMessage) {
+        // A NAK after the handshake (a rejected CAP NEW request) requires no action.
+        guard self.capabilityNegotiationComplete == false else {
+            return
+        }
+        self.endCapabilityNegotiation()
+    }
+
+    /// Handles `CAP NEW` (cap-notify): records the newly-available capabilities and requests any the
+    /// client understands and has not already enabled.
+    func capabilitiesAdded(message: IRCMessage) {
+        guard let capString = message.parameters[safe: 2] else {
+            return
+        }
+        let caps = IRCv3CapabilityInfo.from(string: capString)
+        for capability in caps.keys where self.serverInfo.supportedIRCv3Capabilities.contains(capability) == false {
+            self.serverInfo.supportedIRCv3Capabilities.append(capability)
+        }
+        let capabilitiesToRequest = Array(caps.keys).filter({ self.hasIRCv3Capability($0) == false })
+        self.requestIRCv3Capabilities(capabilities: capabilitiesToRequest)
+    }
+
+    /// Handles `CAP DEL` (cap-notify): the server has withdrawn the given capabilities.
+    func capabilitiesRemoved(message: IRCMessage) {
+        guard let capString = message.parameters[safe: 2] else {
+            return
+        }
+        let removed = IRCv3Capability.list(fromString: capString)
+        self.serverInfo.enabledIRCv3Capabilities.removeAll(where: { removed.contains($0) })
+        self.serverInfo.supportedIRCv3Capabilities.removeAll(where: { removed.contains($0) })
+    }
+
+    func endCapabilityNegotiation() {
+        self.capabilityNegotiationComplete = true
         self.send(command: .CAP, parameters: ["END"])
     }
 

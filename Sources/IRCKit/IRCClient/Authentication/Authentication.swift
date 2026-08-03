@@ -65,7 +65,7 @@ extension IRCClient {
     }
 
     func handleAuthenticationCompleted(message: IRCMessage) {
-        self.send(command: .CAP, parameters: ["END"])
+        self.endCapabilityNegotiation()
     }
 
     func handleAccountChangeServerEvent(message: IRCMessage) {
