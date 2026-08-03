@@ -1,18 +1,18 @@
 /*
  Copyright 2020 The Fuel Rats Mischief
- 
+
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
- 
+
  1. Redistributions of source code must retain the above copyright notice,
  this list of conditions and the following disclaimer.
- 
+
  2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
  disclaimer in the documentation and/or other materials provided with the distribution.
- 
+
  3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
  products derived from this software without specific prior written permission.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -25,11 +25,22 @@
 import Foundation
 import CryptoSwift
 
+/// SCRAM-SHA-256 SASL authentication, per RFC 5802 (SCRAM) and RFC 7677 (SHA-256 profile).
+///
+/// The exchange is: client-first (`n,,n=user,r=nonce`) → server-first (`r=,s=,i=`) →
+/// client-final (`c=,r=,p=proof`) → server-final (`v=signature`). The client derives its proof from
+/// the salted password and verifies the server's signature before completing.
 class Sha256SASLHandler: SASLHandler {
     static let mechanism = "SCRAM-SHA-256"
     var client: IRCClient
-    var nonce: String?
-    var serverSignature: [UInt8]?
+
+    /// Overrides the randomly generated client nonce. This is a test-only seam for reproducing the
+    /// fixed RFC 7677 vector; it is nil in normal operation.
+    var clientNonceOverride: String?
+
+    private var clientNonce: String?
+    private var clientFirstMessageBare: String?
+    private var expectedServerSignature: [UInt8]?
 
     required init(client: IRCClient) {
         self.client = client
@@ -41,123 +52,176 @@ class Sha256SASLHandler: SASLHandler {
             return
         }
         if response == "+" {
-            self.sendAuthenticationChallenge()
+            self.sendClientFirstMessage()
         } else {
-            parseSASLScramResponse(message: message)
+            self.handleServerMessage(response)
         }
     }
 
-    func sendAuthenticationChallenge() {
-        let username = self.client.configuration.authenticationUsername ?? self.client.configuration.username
-        let nonce = String.random(length: 32)
-        self.nonce = nonce
+    private func sendClientFirstMessage() {
+        let username = Sha256SASLHandler.encodeUsername(
+            self.client.configuration.authenticationUsername ?? self.client.configuration.username
+        )
+        let clientNonce = self.clientNonceOverride ?? String.random(length: 32)
+        self.clientNonce = clientNonce
 
-        let challenge = "n,,n=\(username),r=\(nonce)"
-        guard let encodedChallenge = challenge.data(using: .utf8)?.base64EncodedString() else {
+        let clientFirstMessageBare = "n=\(username),r=\(clientNonce)"
+        self.clientFirstMessageBare = clientFirstMessageBare
+
+        // gs2-header "n,," — no channel binding, no authzid.
+        let clientFirstMessage = "n,,\(clientFirstMessageBare)"
+        guard let encoded = clientFirstMessage.data(using: .utf8)?.base64EncodedString() else {
+            self.client.abortSaslAuthentication()
+            return
+        }
+        self.client.sendAuthenticate(message: encoded)
+    }
+
+    private func handleServerMessage(_ response: String) {
+        guard
+            let data = Data(base64Encoded: response),
+            let message = String(data: data, encoding: .utf8)
+        else {
             self.client.abortSaslAuthentication()
             return
         }
 
-        self.client.sendAuthenticate(message: encodedChallenge)
-    }
+        let attributes = Sha256SASLHandler.parseAttributes(message)
 
-    func parseSASLScramResponse(message: IRCMessage) {
-        guard
-            let response = message.parameters[safe: 0],
-            let scramData = Data(base64Encoded: response),
-            let scramMessage = String(data: scramData, encoding: .utf8)
-        else {
-            return
-        }
-
-        let scramParams = scramMessage.keyValuePairs(separatedBy: ",")
-
-        guard scramParams["e"] == nil else {
+        guard attributes["e"] == nil else {
             self.client.abortSaslAuthentication()
             return
         }
 
-        if let verification = scramParams["v"] as? String {
-            scramSha256Verify(verification: verification)
+        if let verifier = attributes["v"] {
+            self.verifyServerSignature(verifier)
             return
         }
 
         guard
-            let nonce = scramParams["r"] as? String,
-            let salt = scramParams["s"] as? String,
-            let iterationCount = Int(scramParams["i"] as? String ?? "")
+            let fullNonce = attributes["r"],
+            let encodedSalt = attributes["s"],
+            let salt = Data(base64Encoded: encodedSalt),
+            let iterationString = attributes["i"],
+            let iterations = Int(iterationString), iterations > 0,
+            let clientNonce = self.clientNonce,
+            fullNonce.hasPrefix(clientNonce)
         else {
+            self.client.abortSaslAuthentication()
             return
         }
 
-        scramSha256Authenticate(salt: salt, nonce: nonce, iterationCount: iterationCount, message: scramMessage)
+        self.sendClientFinalMessage(
+            serverFirstMessage: message,
+            fullNonce: fullNonce,
+            salt: Array(salt),
+            iterations: iterations
+        )
     }
 
-    /* Thank you to github.com/moortens for documenting how this works in their "yoil" IRC Library
-     because the people who made the specification sure didn't bother to. */
-    func scramSha256Authenticate(salt: String, nonce: String, iterationCount: Int, message: String) {
+    private func sendClientFinalMessage(
+        serverFirstMessage: String,
+        fullNonce: String,
+        salt: [UInt8],
+        iterations: Int
+    ) {
         guard
             let password = self.client.configuration.authenticationPassword,
-            let saltedPassword = pbkdf2(password: password, salt: salt, iteration: iterationCount),
+            let clientFirstMessageBare = self.clientFirstMessageBare,
+            let saltedPassword = Sha256SASLHandler.pbkdf2(password: password, salt: salt, iterations: iterations),
             let clientKey = try? HMAC(key: saltedPassword, variant: .sha2(.sha256))
                 .authenticate(Array("Client Key".utf8)),
             let serverKey = try? HMAC(key: saltedPassword, variant: .sha2(.sha256))
-                .authenticate(Array("Server Key".utf8)),
-            let base64Message = message.data(using: .utf8)?.base64EncodedString()
+                .authenticate(Array("Server Key".utf8))
         else {
             self.client.abortSaslAuthentication()
             return
         }
 
         let storedKey = Digest.sha256(clientKey)
-        let username = self.client.configuration.authenticationUsername ?? self.client.configuration.username
-        let authMessage = [
-            "n": username,
-            "r": nonce,
-            base64Message: nil,
-            "c": "biws"
-        ].keyValueString(joinedBy: ",")
+
+        // The gs2-header "n,," base64-encoded is the constant "biws".
+        let channelBinding = Data("n,,".utf8).base64EncodedString()
+        let clientFinalMessageWithoutProof = "c=\(channelBinding),r=\(fullNonce)"
+        let authMessage = "\(clientFirstMessageBare),\(serverFirstMessage),\(clientFinalMessageWithoutProof)"
 
         guard
             let clientSignature = try? HMAC(key: storedKey, variant: .sha2(.sha256))
                 .authenticate(Array(authMessage.utf8)),
             let serverSignature = try? HMAC(key: serverKey, variant: .sha2(.sha256))
                 .authenticate(Array(authMessage.utf8)),
-            let clientXor = clientKey.xor(with: clientSignature)
+            let clientProof = clientKey.xor(with: clientSignature)
         else {
             self.client.abortSaslAuthentication()
             return
         }
 
-        self.serverSignature = serverSignature
+        self.expectedServerSignature = serverSignature
 
-        let final = [
-            "c": "biws",
-            "r": nonce,
-            "p": clientXor
-        ].keyValueString(joinedBy: ",")
+        let clientFinalMessage = "\(clientFinalMessageWithoutProof),p=\(clientProof)"
+        guard let encoded = clientFinalMessage.data(using: .utf8)?.base64EncodedString() else {
+            self.client.abortSaslAuthentication()
+            return
+        }
+        self.client.sendAuthenticate(message: encoded)
+    }
 
-        guard let base64Final = final.data(using: .utf8)?.base64EncodedString() else {
+    private func verifyServerSignature(_ verifier: String) {
+        guard
+            let expected = self.expectedServerSignature,
+            let decoded = Data(base64Encoded: verifier)
+        else {
             self.client.abortSaslAuthentication()
             return
         }
 
-        self.client.sendAuthenticate(message: base64Final)
-    }
-
-    func scramSha256Verify(verification: String) {
-        if verification.bytes == self.serverSignature {
+        if Sha256SASLHandler.constantTimeEquals(Array(decoded), expected) {
             self.client.sendAuthenticate(message: "+")
         } else {
             self.client.abortSaslAuthentication()
         }
     }
-}
 
-private func pbkdf2(password: String, salt: String, iteration: Int) -> [UInt8]? {
-    return try? PKCS5.PBKDF2(
-        password: Array(password.utf8),
-        salt: Array(salt.utf8),
-        iterations: iteration, variant: .sha2(.sha256)
-    ).calculate()
+    /// Parses a SCRAM message into its single-letter attributes. Values may themselves contain `=`
+    /// (e.g. base64 salt padding), so only the first `=` separates key from value.
+    private static func parseAttributes(_ message: String) -> [String: String] {
+        var attributes: [String: String] = [:]
+        for token in message.split(separator: ",") {
+            let key = String(token.prefix(1))
+            let afterKey = token.dropFirst()
+            guard afterKey.first == "=" else {
+                continue
+            }
+            attributes[key] = String(afterKey.dropFirst())
+        }
+        return attributes
+    }
+
+    /// Escapes a SASL username for the `n=` attribute, per RFC 5802: `=` → `=3D`, `,` → `=2C`.
+    /// The `=` substitution runs first so it does not corrupt the escapes it introduces.
+    private static func encodeUsername(_ username: String) -> String {
+        return username
+            .replacingOccurrences(of: "=", with: "=3D")
+            .replacingOccurrences(of: ",", with: "=2C")
+    }
+
+    private static func pbkdf2(password: String, salt: [UInt8], iterations: Int) -> [UInt8]? {
+        return try? PKCS5.PBKDF2(
+            password: Array(password.utf8),
+            salt: salt,
+            iterations: iterations,
+            variant: .sha2(.sha256)
+        ).calculate()
+    }
+
+    private static func constantTimeEquals(_ lhs: [UInt8], _ rhs: [UInt8]) -> Bool {
+        guard lhs.count == rhs.count else {
+            return false
+        }
+        var difference: UInt8 = 0
+        for (left, right) in zip(lhs, rhs) {
+            difference |= left ^ right
+        }
+        return difference == 0
+    }
 }

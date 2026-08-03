@@ -35,24 +35,6 @@ extension Array where Element == String {
     }
 }
 
-extension Dictionary where Key == String, Value == String {
-    func keyValueString(joinedBy separator: String) -> String {
-        return self.map({ (kv: (String, String)) -> String in
-            let (key, value) = kv
-            return "\(key)=\(value)"
-        }).joined(separator: separator)
-    }
-}
-
-extension Dictionary where Key == String, Value == String? {
-    func keyValueString(joinedBy separator: String) -> String {
-        return self.map({ (kv: (String, String?)) -> String in
-            let (key, value) = kv
-            return value != nil ? "\(key)=\(value!)" : key
-        }).joined(separator: separator)
-    }
-}
-
 extension Array where Element == UInt8 {
     func xor(with key: [UInt8]) -> String? {
         if self.isEmpty {
