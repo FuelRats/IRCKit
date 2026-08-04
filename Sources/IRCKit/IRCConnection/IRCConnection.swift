@@ -69,7 +69,7 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
 
         var sslConfiguration = TLSConfiguration.makeClientConfiguration()
         sslConfiguration.cipherSuites = configuration.chiperSuite ?? TLSConfiguration.clientDefault.cipherSuites
-        sslConfiguration.minimumTLSVersion = .tlsv11
+        sslConfiguration.minimumTLSVersion = .tlsv12
         sslConfiguration.maximumTLSVersion = nil
         sslConfiguration.certificateVerification = verification
         sslConfiguration.certificateChain = certificateChain

@@ -189,3 +189,26 @@ public enum IRCReply: String, Sendable {
     case ERR_SASLALREADY = "907"
     case RPL_SASLMECHS = "908"
 }
+
+extension IRCReply {
+    /// The minimum number of parameters a message for this command must carry before its handler
+    /// is allowed to run. Messages with fewer parameters are dropped at dispatch, so a malformed or
+    /// hostile server cannot drive a handler into an out-of-bounds trap. This is a coarse first line
+    /// of defence; handlers remain individually defensive via `[safe:]` for parameters they access
+    /// conditionally (e.g. extended-join fields or optional trailing text).
+    var minimumParameterCount: Int {
+        switch self {
+            case .PING, .NICK, .PART, .SETNAME, .ACCOUNT, .AUTHENTICATE:
+                return 1
+
+            case .CAP, .RPL_ISUPPORT, .PRIVMSG, .NOTICE, .KICK, .INVITE, .MODE, .TOPIC, .CHGHOST:
+                return 2
+
+            case .RPL_MYINFO:
+                return 5
+
+            default:
+                return 0
+        }
+    }
+}

@@ -46,9 +46,11 @@ extension IRCClient {
             return
         }
 
-        let newNick = message.parameters[0]
+        guard let newNick = message.parameters[safe: 0] else {
+            return
+        }
 
-        if sender.nickname == self.currentNick {
+        if self.isSameName(sender.nickname, self.currentNick) {
             var newSender = sender
             newSender.nickname = newNick
             self.currentNick = newNick
@@ -87,7 +89,9 @@ extension IRCClient {
             return
         }
 
-        let realName = message.parameters[0]
+        guard let realName = message.parameters[safe: 0] else {
+            return
+        }
 
         for channel in self.channels {
             if let member = channel.member(fromSender: sender) {
@@ -101,13 +105,13 @@ extension IRCClient {
             return
         }
 
-        let newUser = message.parameters[0]
-        let newHost = message.parameters[1]
+        guard let newUser = message.parameters[safe: 0], let newHost = message.parameters[safe: 1] else {
+            return
+        }
 
-        if sender.nickname == self.currentNick {
-            var newSender = sender
-            newSender.username = newUser
-            newSender.hostmask = newHost
+        if self.isSameName(sender.nickname, self.currentNick) {
+            self.currentSender?.username = newUser
+            self.currentSender?.hostmask = newHost
         }
 
         for channel in self.channels {

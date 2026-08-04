@@ -34,7 +34,10 @@ class ExternalSASLHandler: SASLHandler {
     }
 
     func handleResponse(message: IRCMessage) {
-        if message.parameters[0] == "+" {
+        guard let response = message.parameters[safe: 0] else {
+            return
+        }
+        if response == "+" {
             client.sendAuthenticate(message: "+")
         } else {
             client.abortSaslAuthentication()

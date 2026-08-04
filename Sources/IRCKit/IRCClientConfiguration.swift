@@ -61,6 +61,11 @@ public struct IRCClientConfiguration: Codable, Sendable {
     public var prefersInsecureConnection: Bool = false
     public var chiperSuite: String?
     public var clientCertificatePath: String?
+
+    /// When true, TLS certificate verification is disabled entirely — not only the chain of trust
+    /// but hostname validation as well, which leaves the connection open to man-in-the-middle
+    /// attacks. Despite the name this is not limited to self-signed certificates; enable it only for
+    /// controlled testing against a known server, never in production.
     public var allowsServerSelfSignedCertificate: Bool = false
 
     public var channels: [String] = []

@@ -61,7 +61,7 @@ public struct IRCSender: CustomStringConvertible, Sendable {
     }
 
     public func isCurrentUser(client: IRCClient) -> Bool {
-        return self.nickname == client.currentNick
+        return client.isSameName(self.nickname, client.currentNick)
     }
 
     static func hostmaskComponents(from senderString: String) -> (String, String, String)? {
