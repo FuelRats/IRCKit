@@ -315,6 +315,12 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
         var tags = tags
         // Strip NUL/CR/LF so caller-supplied text cannot inject additional commands into the stream.
         var params = parameters.map({ $0.ircParameterSanitized() })
+        // Only the trailing parameter may be empty, contain spaces or begin with ':'. In any other position each would
+        // shift the parameters that follow, so refuse to send the line rather than send something the caller didn't mean.
+        if let malformed = params.dropLast().first(where: { $0.isEmpty || $0.contains(" ") || $0.hasPrefix(":") }) {
+            logger.error("Refusing to send \(command): parameter \"\(malformed)\" is not valid outside the trailing position")
+            return
+        }
         if self.hasIRCv3Capability(.labeledResponses) && tags["label"] == nil {
             tags["label"] = String.random(length: 10)
         }

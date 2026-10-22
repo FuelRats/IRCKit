@@ -152,7 +152,7 @@ extension IRCClient {
     }
 
     public func sendActionMessage(toChannelName channelName: String, contents: String) {
-        self.send(command: .PRIVMSG, parameters: [channelName, "\u{001}ACTION \(contents)\u{001}"])
+        self.send(command: .PRIVMSG, parameters: [channelName, "\u{001}ACTION \(contents.withoutCTCPDelimiters())\u{001}"])
     }
 
     public func sendCTCPRequest(toChannel channel: IRCChannel, contents: String) {
@@ -160,7 +160,7 @@ extension IRCClient {
     }
 
     public func sendNotice(toTarget target: String, contents: String) {
-        self.send(command: .NOTICE, parameters: [target, contents])
+        self.send(command: .NOTICE, parameters: [target, contents.withoutCTCPDelimiters()])
     }
 
     public func sendMonitor(addTargets targets: Set<String>) {
