@@ -147,15 +147,15 @@ extension IRCClient {
             return
         }
 
+        if self.isSameName(kickTarget, self.currentNick) {
+            self.removeChannel(named: channelName)
+        }
+
         guard let kickUser = channel.member(named: kickTarget) else {
             return
         }
 
         channel.remove(member: kickUser)
-
-        if sender.isCurrentUser(client: self) {
-            self.removeChannel(named: channelName)
-        }
 
         IRCChannelKickNotification().encode(payload: IRCChannelKickNotification.IRCChannelKick(
             sender: sender,

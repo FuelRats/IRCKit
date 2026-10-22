@@ -160,6 +160,7 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
 
         lastReceivedMessage = Date()
 
+        self.delegate?.didDisconnectFromHost()
         if received.starts(with: "PING ") {
             let pingResponse = String(received.suffix(from: received.index(received.startIndex, offsetBy: 5)))
             self.sendDirectly(message: "PONG \(pingResponse)")

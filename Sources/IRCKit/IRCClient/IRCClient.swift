@@ -135,6 +135,17 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
 
     }
 
+    public func didDisconnectFromHost() {
+        logger.info("Disconnected")
+
+        // Membership and account state is only valid for the session that observed it; keeping it across a
+        // reconnect would attribute accounts to whoever holds those nicknames in the new session.
+        self.channels = []
+        IRCClientDisconnectionNotification().encode(payload:
+            IRCClientConnectionNotification.IRCConnectionChange(client: self)
+        ).post()
+    }
+
     public func didReceiveDataFromConnection(data: String) {
         guard let message = IRCMessage(line: data, client: self) else {
             return
