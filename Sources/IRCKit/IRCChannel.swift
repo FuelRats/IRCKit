@@ -38,7 +38,11 @@ public class IRCChannel: Equatable, @unchecked Sendable {
     public internal(set) var topic: Topic?
     public internal(set) var createdAt: Date?
 
-    public internal(set) var members: [IRCUser]
+    private let memberStorage: LockedValue<[IRCUser]>
+    public internal(set) var members: [IRCUser] {
+        get { self.memberStorage.withValue({ $0 }) }
+        set { self.memberStorage.withValue({ $0 = newValue }) }
+    }
     var isExpectingWhoUpdate: Bool = false
     public let isPrivateMessage: Bool
 
@@ -52,7 +56,7 @@ public class IRCChannel: Equatable, @unchecked Sendable {
         self.name = channelName
         self.client = client
         self.channelModes = channelModes
-        self.members = members
+        self.memberStorage = LockedValue(members)
         self.isPrivateMessage = false
     }
 
@@ -61,7 +65,7 @@ public class IRCChannel: Equatable, @unchecked Sendable {
         self.name = sender.nickname
         self.client = client
         self.channelModes = [:]
-        self.members = [sender]
+        self.memberStorage = LockedValue([sender])
         self.isPrivateMessage = true
     }
 
@@ -70,40 +74,35 @@ public class IRCChannel: Equatable, @unchecked Sendable {
     }
 
     func add(member: IRCUser) {
-        self.members.append(member)
+        self.memberStorage.withValue({ $0.append(member) })
     }
 
     func set(nickname: String, member: IRCUser) {
-        let existingMemberIndex = self.members.firstIndex(where: {
-            self.client.isSameName($0.nickname, nickname)
+        self.memberStorage.withValue({ members in
+            let existingMemberIndex = members.firstIndex(where: {
+                self.client.isSameName($0.nickname, nickname)
+            })
+            if let existingMemberIndex = existingMemberIndex {
+                members[existingMemberIndex] = member
+            } else {
+                members.append(member)
+            }
         })
-        if let existingMemberIndex = existingMemberIndex {
-            self.members[existingMemberIndex] = member
-        } else {
-            self.members.append(member)
-        }
     }
 
     func set(member: IRCUser) {
-        let existingMemberIndex = self.members.firstIndex(where: {
-            self.client.isSameName($0.nickname, member.nickname)
-        })
-        if let existingMemberIndex = existingMemberIndex {
-            self.members[existingMemberIndex] = member
-        } else {
-            self.members.append(member)
-        }
+        self.set(nickname: member.nickname, member: member)
     }
 
     func remove(member: IRCUser) {
-        self.members.removeAll(where: {
-            self.client.isSameName(member.nickname, $0.nickname)
-        })
+        self.remove(named: member.nickname)
     }
 
     func remove(named nickname: String) {
-        self.members.removeAll(where: {
-            self.client.isSameName($0.nickname, nickname)
+        self.memberStorage.withValue({ members in
+            members.removeAll(where: {
+                self.client.isSameName($0.nickname, nickname)
+            })
         })
     }
 

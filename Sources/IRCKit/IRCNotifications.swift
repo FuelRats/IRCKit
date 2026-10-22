@@ -34,6 +34,13 @@ public struct IRCClientConnectionNotification: NotificationDescriptor {
     public let name = Notification.Name("IRCConnectionDidConnect")
 }
 
+public struct IRCClientDisconnectionNotification: NotificationDescriptor {
+    public init () {}
+
+    public typealias Payload = IRCClientConnectionNotification.IRCConnectionChange
+    public let name = Notification.Name("IRCConnectionDidDisconnect")
+}
+
 public protocol IRCNotification: Sendable {
     var id: String { get }
 }

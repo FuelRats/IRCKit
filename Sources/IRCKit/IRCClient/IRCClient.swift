@@ -45,15 +45,22 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
             #endif
         }
     }
-    public internal(set) var channels: [IRCChannel] = [] {
-        willSet {
-            #if os(Linux)
-            #else
-            DispatchQueue.main.async { [self] in
-                self.objectWillChange.send()
-            }
-            #endif
+    private let channelStorage = LockedValue<[IRCChannel]>([])
+    public internal(set) var channels: [IRCChannel] {
+        get { self.channelStorage.withValue({ $0 }) }
+        set {
+            self.channelsWillChange()
+            self.channelStorage.withValue({ $0 = newValue })
         }
+    }
+
+    private func channelsWillChange() {
+        #if os(Linux)
+        #else
+        DispatchQueue.main.async { [self] in
+            self.objectWillChange.send()
+        }
+        #endif
     }
     public internal(set) var currentNick: String
     public internal(set) var currentSender: IRCSender?
@@ -126,6 +133,17 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
             IRCClientConnectionNotification.IRCConnectionChange(client: self)
         ).post()
 
+    }
+
+    public func didDisconnectFromHost() {
+        logger.info("Disconnected")
+
+        // Membership and account state is only valid for the session that observed it; keeping it across a
+        // reconnect would attribute accounts to whoever holds those nicknames in the new session.
+        self.channels = []
+        IRCClientDisconnectionNotification().encode(payload:
+            IRCClientConnectionNotification.IRCConnectionChange(client: self)
+        ).post()
     }
 
     public func didReceiveDataFromConnection(data: String) {
@@ -267,15 +285,22 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
     }
 
     func addChannel(channel: IRCChannel) {
-        guard self.getChannel(named: channel.name) == nil else {
-            return
-        }
-        self.channels.append(channel)
+        let target = self.caseFold(channel.name)
+        self.channelsWillChange()
+        self.channelStorage.withValue({ channels in
+            guard channels.contains(where: { self.caseFold($0.name) == target }) == false else {
+                return
+            }
+            channels.append(channel)
+        })
     }
 
     func removeChannel(named channelName: String) {
         let target = self.caseFold(channelName)
-        self.channels.removeAll(where: { self.caseFold($0.name) == target })
+        self.channelsWillChange()
+        self.channelStorage.withValue({ channels in
+            channels.removeAll(where: { self.caseFold($0.name) == target })
+        })
     }
 
     public func send(command: IRCCommand, parameters: String...) {
@@ -290,6 +315,12 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
         var tags = tags
         // Strip NUL/CR/LF so caller-supplied text cannot inject additional commands into the stream.
         var params = parameters.map({ $0.ircParameterSanitized() })
+        // Only the trailing parameter may be empty, contain spaces or begin with ':'. In any other position each would
+        // shift the parameters that follow, so refuse to send the line rather than send something the caller didn't mean.
+        if let malformed = params.dropLast().first(where: { $0.isEmpty || $0.contains(" ") || $0.hasPrefix(":") }) {
+            logger.error("Refusing to send \(command): parameter \"\(malformed)\" is not valid outside the trailing position")
+            return
+        }
         if self.hasIRCv3Capability(.labeledResponses) && tags["label"] == nil {
             tags["label"] = String.random(length: 10)
         }

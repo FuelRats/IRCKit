@@ -96,22 +96,35 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
         self.bootstrap = ClientBootstrap(group: group)
             .channelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
             .channelInitializer({ channel in
-                let sslHandler = try? NIOSSLClientHandler(
-                    context: sslContext,
-                    serverHostname: self.configuration.serverAddress
-                )
-                if let sslHandler = sslHandler, self.configuration.prefersInsecureConnection == false {
-                    return channel.pipeline.addHandler(sslHandler).flatMap({
-                        return channel.pipeline.addHandler(ByteToMessageHandler(LineBasedFrameDecoder())).flatMap({
-                            channel.pipeline.addHandler(self)
-                        })
-                    })
-                }
-
-                return channel.pipeline.addHandler(ByteToMessageHandler(LineBasedFrameDecoder())).flatMap({
-                    return channel.pipeline.addHandler(self)
+                channel.eventLoop.makeCompletedFuture(withResultOf: {
+                    let pipeline = channel.pipeline.syncOperations
+                    let serverAddress = self.configuration.serverAddress
+                    if self.configuration.prefersInsecureConnection == false {
+                        // Never fall back to plaintext when the TLS handler cannot be created: the registration
+                        // that follows carries PASS, SASL and OPER credentials.
+                        do {
+                            try pipeline.addHandler(NIOSSLClientHandler(
+                                context: sslContext,
+                                serverHostname: IRCConnection.serverNameIndication(for: serverAddress)
+                            ))
+                        } catch {
+                            self.logger.error("Unable to set up TLS for \(serverAddress): \(error)")
+                            throw error
+                        }
+                    }
+                    try pipeline.addHandler(ByteToMessageHandler(LineBasedFrameDecoder()))
+                    try pipeline.addHandler(self)
                 })
             })
+    }
+
+    /// The TLS server name to send for an address. IP literals are not valid SNI names, so for those NIOSSL is given
+    /// no hostname and verifies the certificate against the peer's IP address instead.
+    static func serverNameIndication(for address: String) -> String? {
+        if (try? SocketAddress(ipAddress: address, port: 0)) != nil {
+            return nil
+        }
+        return address
     }
 
     public var connected: Bool {
@@ -147,6 +160,7 @@ public class IRCConnection: ChannelInboundHandler, @unchecked Sendable {
 
     public func channelInactive(context: ChannelHandlerContext) {
         self.pingTimer?.cancel()
+        self.delegate?.didDisconnectFromHost()
         self.connectionFailed()
     }
 

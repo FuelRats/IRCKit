@@ -26,11 +26,14 @@ import Foundation
 
 public protocol IRCConnectionDelegate: AnyObject {
     func didConnectToHost()
+    func didDisconnectFromHost()
     func didReceiveDataFromConnection(data: String)
 }
 
 extension IRCConnectionDelegate {
     func didConnectToHost() {}
+
+    public func didDisconnectFromHost() {}
 
     func didReceiveDataFromConnection(data: String) {}
 }

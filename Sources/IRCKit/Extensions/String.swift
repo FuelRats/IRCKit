@@ -97,6 +97,12 @@ extension String {
         return String(folded)
     }
 
+    /// Removes the CTCP delimiter (0x01) so plain message text cannot be turned into a CTCP request by its sender.
+    /// CTCP is only sent through the dedicated CTCP and ACTION helpers.
+    func withoutCTCPDelimiters() -> String {
+        return String(String.UnicodeScalarView(self.unicodeScalars.filter({ $0 != "\u{001}" })))
+    }
+
     static func random(length: Int = 20) -> String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var randomString: String = ""
