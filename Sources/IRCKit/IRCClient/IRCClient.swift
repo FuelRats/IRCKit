@@ -45,15 +45,22 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
             #endif
         }
     }
-    public internal(set) var channels: [IRCChannel] = [] {
-        willSet {
-            #if os(Linux)
-            #else
-            DispatchQueue.main.async { [self] in
-                self.objectWillChange.send()
-            }
-            #endif
+    private let channelStorage = LockedValue<[IRCChannel]>([])
+    public internal(set) var channels: [IRCChannel] {
+        get { self.channelStorage.withValue({ $0 }) }
+        set {
+            self.channelsWillChange()
+            self.channelStorage.withValue({ $0 = newValue })
         }
+    }
+
+    private func channelsWillChange() {
+        #if os(Linux)
+        #else
+        DispatchQueue.main.async { [self] in
+            self.objectWillChange.send()
+        }
+        #endif
     }
     public internal(set) var currentNick: String
     public internal(set) var currentSender: IRCSender?
@@ -267,15 +274,22 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
     }
 
     func addChannel(channel: IRCChannel) {
-        guard self.getChannel(named: channel.name) == nil else {
-            return
-        }
-        self.channels.append(channel)
+        let target = self.caseFold(channel.name)
+        self.channelsWillChange()
+        self.channelStorage.withValue({ channels in
+            guard channels.contains(where: { self.caseFold($0.name) == target }) == false else {
+                return
+            }
+            channels.append(channel)
+        })
     }
 
     func removeChannel(named channelName: String) {
         let target = self.caseFold(channelName)
-        self.channels.removeAll(where: { self.caseFold($0.name) == target })
+        self.channelsWillChange()
+        self.channelStorage.withValue({ channels in
+            channels.removeAll(where: { self.caseFold($0.name) == target })
+        })
     }
 
     public func send(command: IRCCommand, parameters: String...) {
