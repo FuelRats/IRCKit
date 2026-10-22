@@ -103,48 +103,72 @@ extension IRCClient {
         let senderLength = self.currentSender?.description.utf8.count ?? 103
         let maxMessageLength = 510 - (senderLength + 7 + 7 + target.utf8.count)
 
-        var contents = contents
-        while contents.utf8.count > 0 {
-            if contents.utf8.count <= maxMessageLength {
-                self.send(command: .PRIVMSG, parameters: [target, contents], tags: additionalTags)
-                contents = ""
-            } else {
-                // Find the the point of the message where we've reached the max number of bytes we can send
-                var maxMessageView = contents.utf8.index(contents.utf8.startIndex, offsetBy: maxMessageLength - 1)
-                var samePosition: String.Index? = maxMessageView.samePosition(in: contents)
-                while samePosition == nil && maxMessageView > contents.utf8.startIndex {
-                    maxMessageView = contents.utf8.index(maxMessageView, offsetBy: -1)
-                    samePosition = maxMessageView.samePosition(in: contents)
-                }
-
-                // Attempt to find the last whitespace before the message limit where we can split the message
-                var delimit = contents.rangeOfCharacter(
-                    from: .whitespaces,
-                    options: .backwards,
-                    range: contents.startIndex..<(maxMessageView.samePosition(in: contents)!)
-                )?.lowerBound
-
-                if delimit == nil {
-                    /*
-                     For some reason some mad soul has sent a ~500+ byte message with NO spaces.
-                     Let's instead split the message at the last whole grapheme cluster.
-                     */
-                    delimit = contents.index(before: (maxMessageView.samePosition(in: contents) ?? contents.endIndex))
-                }
-
-                if delimit == nil {
-                    /*
-                     Someone has managed to send a single 500+ byte grapheme cluster.
-                     Give up all hope and just send the whole thing.
-                     */
-                    delimit = contents.endIndex
-                }
-
-                let splitMessage = String(contents[contents.startIndex..<delimit!])
-                contents.removeSubrange(contents.startIndex..<delimit!)
-                self.send(command: .PRIVMSG, parameters: [target, splitMessage], tags: additionalTags)
-            }
+        for chunk in IRCClient.splitMessage(contents.withoutCTCPDelimiters(), maxBytes: maxMessageLength) {
+            self.send(command: .PRIVMSG, parameters: [target, chunk], tags: additionalTags)
         }
+    }
+
+    /// The smallest per-line budget used when splitting, so a pathological sender or target length can never make
+    /// the budget zero or negative.
+    static let minimumSplitBytes = 32
+
+    /**
+     Splits a message into chunks of at most `maxBytes` UTF-8 bytes. Splits prefer the last whitespace before the
+     limit, then the last whole grapheme cluster, then (for a single cluster larger than the limit, such as heavy
+     combining marks) the last whole unicode scalar. Every chunk is non-empty, so splitting always terminates.
+     */
+    static func splitMessage(_ contents: String, maxBytes: Int) -> [String] {
+        let maxBytes = max(maxBytes, IRCClient.minimumSplitBytes)
+        var chunks: [String] = []
+        var remaining = Substring(contents)
+
+        while remaining.isEmpty == false {
+            if remaining.utf8.count <= maxBytes {
+                chunks.append(String(remaining))
+                break
+            }
+
+            var limit = remaining.startIndex
+            var byteCount = 0
+            for index in remaining.indices {
+                let characterBytes = remaining[index].utf8.count
+                guard byteCount + characterBytes <= maxBytes else {
+                    break
+                }
+                byteCount += characterBytes
+                limit = remaining.index(after: index)
+            }
+
+            let splitIndex: String.Index
+            if limit == remaining.startIndex {
+                splitIndex = scalarSplitIndex(in: remaining, maxBytes: maxBytes)
+            } else if
+                let whitespace = remaining[remaining.startIndex..<limit].lastIndex(where: { $0.isWhitespace }),
+                whitespace > remaining.startIndex {
+                splitIndex = whitespace
+            } else {
+                splitIndex = limit
+            }
+
+            chunks.append(String(remaining[remaining.startIndex..<splitIndex]))
+            remaining = remaining[splitIndex...].drop(while: { $0.isWhitespace })
+        }
+        return chunks
+    }
+
+    private static func scalarSplitIndex(in text: Substring, maxBytes: Int) -> String.Index {
+        let scalars = text.unicodeScalars
+        var index = scalars.startIndex
+        var byteCount = 0
+        while index < scalars.endIndex {
+            let scalarBytes = String(scalars[index]).utf8.count
+            guard byteCount + scalarBytes <= maxBytes else {
+                break
+            }
+            byteCount += scalarBytes
+            index = scalars.index(after: index)
+        }
+        return index > scalars.startIndex ? index : scalars.index(after: scalars.startIndex)
     }
 
     public func sendActionMessage(toChannel channel: IRCChannel, contents: String) {
