@@ -119,8 +119,11 @@ public struct IRCMessage: Sendable {
     static func parseMessageTags(tagsString: String, client: IRCClient) -> [String: String] {
         let tagsString = tagsString.suffix(from: tagsString.index(tagsString.startIndex, offsetBy: 1))
         return tagsString.split(separator: ";").reduce(into: [String: String](), { tags, tag in
-            let tagComponents = tag.split(separator: "=")
-            tags[String(tagComponents[0])] = tagComponents.count > 1 ? String(tagComponents[1]) : nil
+            let tagComponents = tag.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            guard let key = tagComponents.first, key.isEmpty == false else {
+                return
+            }
+            tags[String(key)] = tagComponents.count > 1 ? String(tagComponents[1]).ircTagValueUnescaped() : nil
         })
     }
 }

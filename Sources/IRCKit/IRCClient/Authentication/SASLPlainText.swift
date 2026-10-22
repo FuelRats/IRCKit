@@ -34,7 +34,10 @@ class PlainTextSASLHandler: SASLHandler {
     }
 
     func handleResponse(message: IRCMessage) {
-        if message.parameters[0] == "+" {
+        guard let response = message.parameters[safe: 0] else {
+            return
+        }
+        if response == "+" {
             guard let password = client.configuration.authenticationPassword else {
                 client.abortSaslAuthentication()
                 return

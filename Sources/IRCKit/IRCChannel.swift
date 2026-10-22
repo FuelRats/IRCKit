@@ -75,7 +75,7 @@ public class IRCChannel: Equatable, @unchecked Sendable {
 
     func set(nickname: String, member: IRCUser) {
         let existingMemberIndex = self.members.firstIndex(where: {
-            $0.nickname == nickname
+            self.client.isSameName($0.nickname, nickname)
         })
         if let existingMemberIndex = existingMemberIndex {
             self.members[existingMemberIndex] = member
@@ -86,7 +86,7 @@ public class IRCChannel: Equatable, @unchecked Sendable {
 
     func set(member: IRCUser) {
         let existingMemberIndex = self.members.firstIndex(where: {
-            $0.nickname == member.nickname
+            self.client.isSameName($0.nickname, member.nickname)
         })
         if let existingMemberIndex = existingMemberIndex {
             self.members[existingMemberIndex] = member
@@ -97,13 +97,13 @@ public class IRCChannel: Equatable, @unchecked Sendable {
 
     func remove(member: IRCUser) {
         self.members.removeAll(where: {
-            member.nickname == $0.nickname
+            self.client.isSameName(member.nickname, $0.nickname)
         })
     }
 
     func remove(named nickname: String) {
         self.members.removeAll(where: {
-            $0.nickname == nickname
+            self.client.isSameName($0.nickname, nickname)
         })
     }
 
@@ -112,15 +112,14 @@ public class IRCChannel: Equatable, @unchecked Sendable {
     }
 
     public func member(named nickname: String) -> IRCUser? {
-        let nickname = nickname.lowercased()
         return members.first(where: {
-            $0.nickname.lowercased() == nickname
+            self.client.isSameName($0.nickname, nickname)
         })
     }
 
     public func member(fromSender sender: IRCSender) -> IRCUser? {
         return members.first(where: {
-            $0.nickname == sender.nickname
+            self.client.isSameName($0.nickname, sender.nickname)
         })
     }
 

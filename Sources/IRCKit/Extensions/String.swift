@@ -35,24 +35,6 @@ extension Array where Element == String {
     }
 }
 
-extension Dictionary where Key == String, Value == String {
-    func keyValueString(joinedBy separator: String) -> String {
-        return self.map({ (kv: (String, String)) -> String in
-            let (key, value) = kv
-            return "\(key)=\(value)"
-        }).joined(separator: separator)
-    }
-}
-
-extension Dictionary where Key == String, Value == String? {
-    func keyValueString(joinedBy separator: String) -> String {
-        return self.map({ (kv: (String, String?)) -> String in
-            let (key, value) = kv
-            return value != nil ? "\(key)=\(value!)" : key
-        }).joined(separator: separator)
-    }
-}
-
 extension Array where Element == UInt8 {
     func xor(with key: [UInt8]) -> String? {
         if self.isEmpty {
@@ -77,6 +59,44 @@ extension String {
         return tokens.keyValuePairs()
     }
 
+    /// Removes the characters forbidden inside an IRC parameter (NUL, CR, LF) so caller-supplied
+    /// text cannot terminate the line and inject additional commands. Filtering operates on unicode
+    /// scalars because Swift treats a CR+LF pair as a single grapheme cluster.
+    func ircParameterSanitized() -> String {
+        return String(String.UnicodeScalarView(self.unicodeScalars.filter({
+            $0 != "\0" && $0 != "\r" && $0 != "\n"
+        })))
+    }
+
+    /// Folds a nickname or channel name to a canonical lowercase form for case-insensitive
+    /// comparison, honouring the server's CASEMAPPING (RFC 2812 §2.2). `rfc1459` additionally treats
+    /// `[]\~` as the uppercase forms of `{}|^`; `rfc1459-strict` does the same except for `~`;
+    /// `ascii` folds only A–Z. Defaults to `rfc1459` when the server has not advertised a mapping.
+    func ircCaseFolded(mapping: String?) -> String {
+        let mapping = mapping?.lowercased() ?? "rfc1459"
+        let foldsBrackets = mapping == "rfc1459" || mapping == "rfc1459-strict"
+        let foldsTilde = mapping == "rfc1459"
+
+        var folded = String.UnicodeScalarView()
+        for scalar in self.unicodeScalars {
+            switch scalar.value {
+                case 0x41...0x5A:  // A–Z
+                    folded.append(UnicodeScalar(scalar.value + 32) ?? scalar)
+                case 0x5B where foldsBrackets:  // [
+                    folded.append("{")
+                case 0x5D where foldsBrackets:  // ]
+                    folded.append("}")
+                case 0x5C where foldsBrackets:  // \
+                    folded.append("|")
+                case 0x7E where foldsTilde:  // ~
+                    folded.append("^")
+                default:
+                    folded.append(scalar)
+            }
+        }
+        return String(folded)
+    }
+
     static func random(length: Int = 20) -> String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var randomString: String = ""
@@ -90,6 +110,50 @@ extension String {
             randomString += "\(base[base.index(base.startIndex, offsetBy: randomValue)])"
         }
         return randomString
+    }
+
+    /// Escapes this string for use as an IRCv3 message-tag value, per the message-tags spec:
+    /// `\` → `\\`, `;` → `\:`, space → `\s`, CR → `\r`, LF → `\n`.
+    func ircTagValueEscaped() -> String {
+        var escaped = ""
+        escaped.reserveCapacity(self.count)
+        for character in self {
+            switch character {
+                case "\\": escaped += "\\\\"
+                case ";": escaped += "\\:"
+                case " ": escaped += "\\s"
+                case "\r": escaped += "\\r"
+                case "\n": escaped += "\\n"
+                default: escaped.append(character)
+            }
+        }
+        return escaped
+    }
+
+    /// Reverses IRCv3 message-tag value escaping. Unrecognised escape sequences resolve to the
+    /// escaped character itself, and a trailing lone backslash is dropped, both per the spec.
+    func ircTagValueUnescaped() -> String {
+        var unescaped = ""
+        unescaped.reserveCapacity(self.count)
+        var iterator = self.makeIterator()
+        while let character = iterator.next() {
+            guard character == "\\" else {
+                unescaped.append(character)
+                continue
+            }
+            guard let escaped = iterator.next() else {
+                break
+            }
+            switch escaped {
+                case ":": unescaped.append(";")
+                case "s": unescaped.append(" ")
+                case "\\": unescaped.append("\\")
+                case "r": unescaped.append("\r")
+                case "n": unescaped.append("\n")
+                default: unescaped.append(escaped)
+            }
+        }
+        return unescaped
     }
 
 }

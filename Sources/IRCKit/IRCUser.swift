@@ -69,13 +69,18 @@ public class IRCUser: @unchecked Sendable {
         self.channelUserModes = userModes
     }
 
-    init (fromPrivateMessage message: IRCMessage, onClient client: IRCClient) {
+    init? (fromPrivateMessage message: IRCMessage, onClient client: IRCClient) {
+        guard
+            let sender = message.sender,
+            let username = sender.username,
+            let hostmask = sender.hostmask
+        else {
+            return nil
+        }
         self.client = client
-        let sender = message.sender!
-
         self.nickname = sender.nickname
-        self.username = sender.username!
-        self.hostmask = sender.hostmask!
+        self.username = username
+        self.hostmask = hostmask
         self.realName = nil
         self.account = message.account
         self.isAway = false
@@ -113,8 +118,16 @@ public enum IRCChannelUserMode: Character, Sendable {
     }
 
     static func map(fromString prefixString: String) -> [IRCChannelUserMode: Character] {
-        let prefixLettersStartIndex = prefixString.index(prefixString.firstIndex(of: "(")!, offsetBy: 1)
-        let prefixLettersEndIndex = prefixString.firstIndex(of: ")")!
+        guard
+            let openParenIndex = prefixString.firstIndex(of: "("),
+            let prefixLettersEndIndex = prefixString.firstIndex(of: ")")
+        else {
+            return [:]
+        }
+        let prefixLettersStartIndex = prefixString.index(openParenIndex, offsetBy: 1)
+        guard prefixLettersStartIndex <= prefixLettersEndIndex else {
+            return [:]
+        }
         let prefixSymbolsStartIndex = prefixString.index(prefixLettersEndIndex, offsetBy: 1)
         let prefixLetters = prefixString[prefixLettersStartIndex..<prefixLettersEndIndex]
         let prefixSymbols = prefixString.suffix(from: prefixSymbolsStartIndex)

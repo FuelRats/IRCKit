@@ -62,6 +62,9 @@ public struct IRCServerInfo: @unchecked Sendable {
     }
 
     internal mutating func setServerInfo(parameters: [String]) {
+        guard parameters.count >= 5 else {
+            return
+        }
         self.serverName = parameters[1]
         self.serverVersion = parameters[2]
 
@@ -72,6 +75,9 @@ public struct IRCServerInfo: @unchecked Sendable {
     }
 
     internal mutating func setSupported(parameters: [String]) {
+        guard parameters.count >= 2 else {
+            return
+        }
         var supportEntries = parameters
         supportEntries.removeFirst()
         supportEntries.removeLast()

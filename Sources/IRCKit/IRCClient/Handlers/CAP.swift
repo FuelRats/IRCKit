@@ -26,7 +26,9 @@ import Foundation
 
 extension IRCClient {
     func handleIRCv3CapabilityReply(message: IRCMessage) {
-        let capProtocolCommand = message.parameters[1]
+        guard let capProtocolCommand = message.parameters[safe: 1] else {
+            return
+        }
         switch capProtocolCommand {
             case "LS":
                 capNegotiation(message: message)
@@ -34,6 +36,10 @@ extension IRCClient {
                 capNegotiationComplete(message: message)
             case "NAK":
                 capNegotiationFailed(message: message)
+            case "NEW":
+                capabilitiesAdded(message: message)
+            case "DEL":
+                capabilitiesRemoved(message: message)
             default:
                 break
         }
@@ -46,7 +52,9 @@ extension IRCClient {
         // final line omits the `*`. Accumulate the tokens and only negotiate once the
         // complete list has arrived.
         let isMultilineContinuation = message.parameters.count > 3 && message.parameters[2] == "*"
-        let capString = isMultilineContinuation ? message.parameters[3] : message.parameters[2]
+        guard let capString = message.parameters[safe: isMultilineContinuation ? 3 : 2] else {
+            return
+        }
 
         if self.capabilityLSBuffer.isEmpty {
             self.capabilityLSBuffer = capString
@@ -63,7 +71,7 @@ extension IRCClient {
 
         let caps = IRCv3CapabilityInfo.from(string: fullCapString)
         if let strictTransportInfo = caps.keyValuePairs(cap: .strictTransportSecurity) {
-            if let port = Int.parse(strictTransportInfo["port"]!), port != self.configuration.serverPort {
+            if let port = Int.parse(strictTransportInfo["port"] ?? nil), port != self.configuration.serverPort {
                 self.configuration.serverPort = port
                 self.configuration.prefersInsecureConnection = false
                 self.connection.disconnect()
@@ -77,10 +85,25 @@ extension IRCClient {
     }
 
     func capNegotiationComplete(message: IRCMessage) {
-        let acceptedCapabilities = IRCv3Capability.list(fromString: message.parameters[2])
-        self.serverInfo.enabledIRCv3Capabilities = acceptedCapabilities
+        guard let capList = message.parameters[safe: 2] else {
+            if self.capabilityNegotiationComplete == false {
+                self.endCapabilityNegotiation()
+            }
+            return
+        }
 
-        let caps = IRCv3CapabilityInfo.from(string: message.parameters[2])
+        let acceptedCapabilities = IRCv3Capability.list(fromString: capList)
+        for capability in acceptedCapabilities where self.hasIRCv3Capability(capability) == false {
+            self.serverInfo.enabledIRCv3Capabilities.append(capability)
+        }
+
+        // An ACK received after the initial handshake (e.g. in response to a CAP NEW) only updates
+        // the enabled set; it must not restart SASL or re-send CAP END.
+        guard self.capabilityNegotiationComplete == false else {
+            return
+        }
+
+        let caps = IRCv3CapabilityInfo.from(string: capList)
         if let saslCap = caps[.sasl] as? [String] {
             let mechanisms = saslCap.compactMap({ (serverMechanism: String) -> SASLHandler.Type? in
                 return IRCClient.supportedHandlers.first(where: { (clientHandler: SASLHandler.Type) -> Bool in
@@ -99,10 +122,43 @@ extension IRCClient {
                 return
             }
         }
-        self.send(command: .CAP, parameters: ["END"])
+        self.endCapabilityNegotiation()
     }
 
     func capNegotiationFailed(message: IRCMessage) {
+        // A NAK after the handshake (a rejected CAP NEW request) requires no action.
+        guard self.capabilityNegotiationComplete == false else {
+            return
+        }
+        self.endCapabilityNegotiation()
+    }
+
+    /// Handles `CAP NEW` (cap-notify): records the newly-available capabilities and requests any the
+    /// client understands and has not already enabled.
+    func capabilitiesAdded(message: IRCMessage) {
+        guard let capString = message.parameters[safe: 2] else {
+            return
+        }
+        let caps = IRCv3CapabilityInfo.from(string: capString)
+        for capability in caps.keys where self.serverInfo.supportedIRCv3Capabilities.contains(capability) == false {
+            self.serverInfo.supportedIRCv3Capabilities.append(capability)
+        }
+        let capabilitiesToRequest = Array(caps.keys).filter({ self.hasIRCv3Capability($0) == false })
+        self.requestIRCv3Capabilities(capabilities: capabilitiesToRequest)
+    }
+
+    /// Handles `CAP DEL` (cap-notify): the server has withdrawn the given capabilities.
+    func capabilitiesRemoved(message: IRCMessage) {
+        guard let capString = message.parameters[safe: 2] else {
+            return
+        }
+        let removed = IRCv3Capability.list(fromString: capString)
+        self.serverInfo.enabledIRCv3Capabilities.removeAll(where: { removed.contains($0) })
+        self.serverInfo.supportedIRCv3Capabilities.removeAll(where: { removed.contains($0) })
+    }
+
+    func endCapabilityNegotiation() {
+        self.capabilityNegotiationComplete = true
         self.send(command: .CAP, parameters: ["END"])
     }
 

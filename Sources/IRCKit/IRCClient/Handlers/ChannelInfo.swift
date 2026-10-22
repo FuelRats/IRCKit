@@ -104,21 +104,29 @@ extension IRCClient {
     }
 
     func handleTopicInformation(message: IRCMessage) {
-        let channelName = message.parameters[1]
+        guard let channelName = message.parameters[safe: 1] else {
+            return
+        }
         guard let channel = self.getChannel(named: channelName) else {
             return
         }
 
         switch message.command {
             case .RPL_TOPIC:
-                channel.topic = IRCChannel.Topic(contents: message.parameters[2], author: nil, date: nil)
+                if let contents = message.parameters[safe: 2] {
+                    channel.topic = IRCChannel.Topic(contents: contents, author: nil, date: nil)
+                }
 
             case .RPL_TOPICWHOTIME:
-                guard let date = DateFormatter.iso8601Full.date(from: message.parameters[3]) else {
+                guard
+                    let author = message.parameters[safe: 2],
+                    let dateString = message.parameters[safe: 3],
+                    let date = Date.fromUnixTimestamp(dateString)
+                else {
                     return
                 }
 
-                channel.topic?.author = message.parameters[2]
+                channel.topic?.author = author
                 channel.topic?.date = date
 
             case .RPL_NOTOPIC:
@@ -130,7 +138,9 @@ extension IRCClient {
     }
 
     func handleChannelModeInformation(message: IRCMessage) {
-        let channelName = message.parameters[1]
+        guard let channelName = message.parameters[safe: 1] else {
+            return
+        }
         guard let channel = self.getChannel(named: channelName) else {
             return
         }
@@ -139,12 +149,17 @@ extension IRCClient {
     }
 
     func handleChannelCreatedInformation(message: IRCMessage) {
-        let channelName = message.parameters[1]
+        guard let channelName = message.parameters[safe: 1] else {
+            return
+        }
         guard let channel = self.getChannel(named: channelName) else {
             return
         }
 
-        guard let date = DateFormatter.iso8601Full.date(from: message.parameters[2]) else {
+        guard
+            let createdString = message.parameters[safe: 2],
+            let date = Date.fromUnixTimestamp(createdString)
+        else {
             return
         }
 
