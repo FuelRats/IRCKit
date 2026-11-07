@@ -93,28 +93,30 @@ extension IRCClient {
         }
 
         let acceptedCapabilities = IRCv3Capability.list(fromString: capList)
+        let enablesSASL = acceptedCapabilities.contains(.sasl) && self.hasIRCv3Capability(.sasl) == false
         for capability in acceptedCapabilities where self.hasIRCv3Capability(capability) == false {
             self.serverInfo.enabledIRCv3Capabilities.append(capability)
         }
 
-        // An ACK received after the initial handshake (e.g. in response to a CAP NEW) only updates
-        // the enabled set; it must not restart SASL or re-send CAP END.
+        let caps = IRCv3CapabilityInfo.from(string: capList)
+
+        // An ACK received after the initial handshake (e.g. in response to a CAP NEW) updates the enabled
+        // set and never re-sends CAP END. When it enables sasl (services linked after registration), an
+        // unauthenticated client authenticates mid-session.
         guard self.capabilityNegotiationComplete == false else {
+            if enablesSASL && self.isLoggedIn == false {
+                if let saslCap = caps[.sasl] as? [String] {
+                    self.setSupportedSASLMechanisms(advertised: saslCap)
+                }
+                _ = saslNegotiation()
+            }
             return
         }
 
-        let caps = IRCv3CapabilityInfo.from(string: capList)
         if let saslCap = caps[.sasl] as? [String] {
-            let mechanisms = saslCap.compactMap({ (serverMechanism: String) -> SASLHandler.Type? in
-                return IRCClient.supportedHandlers.first(where: { (clientHandler: SASLHandler.Type) -> Bool in
-                    clientHandler.mechanism == serverMechanism
-                })
-            })
-            self.serverInfo.supportedSASLMechanisms = mechanisms
+            self.setSupportedSASLMechanisms(advertised: saslCap)
         } else if self.hasIRCv3Capability(.sasl) {
-            /* This server does not tell us what SASL mechanisms are supported,
-             we will assume it supports PLAIN and EXTERNAL, and pray. */
-            self.serverInfo.supportedSASLMechanisms = [PlainTextSASLHandler.self, ExternalSASLHandler.self]
+            self.setSupportedSASLMechanisms(advertised: nil)
         }
 
         if self.serverInfo.enabledIRCv3Capabilities.contains(.sasl) {
@@ -133,8 +135,8 @@ extension IRCClient {
         self.endCapabilityNegotiation()
     }
 
-    /// Handles `CAP NEW` (cap-notify): records the newly-available capabilities and requests any the
-    /// client understands and has not already enabled.
+    /// Handles `CAP NEW` (cap-notify): records the newly-available capabilities (and any advertised SASL
+    /// mechanisms) and requests any the client understands and has not already enabled.
     func capabilitiesAdded(message: IRCMessage) {
         guard let capString = message.parameters[safe: 2] else {
             return
@@ -142,6 +144,9 @@ extension IRCClient {
         let caps = IRCv3CapabilityInfo.from(string: capString)
         for capability in caps.keys where self.serverInfo.supportedIRCv3Capabilities.contains(capability) == false {
             self.serverInfo.supportedIRCv3Capabilities.append(capability)
+        }
+        if let saslCap = caps[.sasl] {
+            self.setSupportedSASLMechanisms(advertised: saslCap)
         }
         let capabilitiesToRequest = Array(caps.keys).filter({ self.hasIRCv3Capability($0) == false })
         self.requestIRCv3Capabilities(capabilities: capabilitiesToRequest)
@@ -155,6 +160,22 @@ extension IRCClient {
         let removed = IRCv3Capability.list(fromString: capString)
         self.serverInfo.enabledIRCv3Capabilities.removeAll(where: { removed.contains($0) })
         self.serverInfo.supportedIRCv3Capabilities.removeAll(where: { removed.contains($0) })
+    }
+
+    /// Records which of the server's advertised SASL mechanisms the client has handlers for.
+    func setSupportedSASLMechanisms(advertised: [String]?) {
+        guard let advertised = advertised else {
+            /* This server does not tell us what SASL mechanisms are supported,
+             we will assume it supports PLAIN and EXTERNAL, and pray. */
+            self.serverInfo.supportedSASLMechanisms = [PlainTextSASLHandler.self, ExternalSASLHandler.self]
+            return
+        }
+        let mechanisms = advertised.compactMap({ (serverMechanism: String) -> SASLHandler.Type? in
+            return IRCClient.supportedHandlers.first(where: { (clientHandler: SASLHandler.Type) -> Bool in
+                clientHandler.mechanism == serverMechanism
+            })
+        })
+        self.serverInfo.supportedSASLMechanisms = mechanisms
     }
 
     func endCapabilityNegotiation() {
