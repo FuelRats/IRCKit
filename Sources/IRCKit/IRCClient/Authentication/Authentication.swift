@@ -65,6 +65,17 @@ extension IRCClient {
     }
 
     func handleAuthenticationCompleted(message: IRCMessage) {
+        // SASL that ran after registration has no handshake to end; on success, join the configured
+        // channels that refused the client while it was unauthenticated.
+        guard self.capabilityNegotiationComplete == false else {
+            if message.command == .RPL_SASLSUCCESS {
+                let missingChannels = self.configuration.channels.filter({ self.getChannel(named: $0) == nil })
+                if missingChannels.count > 0 {
+                    self.sendJoin(channels: missingChannels)
+                }
+            }
+            return
+        }
         self.endCapabilityNegotiation()
     }
 

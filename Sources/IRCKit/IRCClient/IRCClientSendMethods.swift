@@ -27,6 +27,7 @@ import Foundation
 extension IRCClient {
     func sendRegistration() {
         self.capabilityNegotiationComplete = false
+        self.isLoggedIn = false
         if let password = self.configuration.serverPassword {
             self.send(command: .PASS, parameters: [password])
         }

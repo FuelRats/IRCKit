@@ -82,6 +82,9 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
     // mid-session CAP ACK/NAK (from a cap-notify CAP NEW) from the registration handshake.
     var capabilityNegotiationComplete = false
 
+    // True while the server reports this connection as logged in to an account (RPL_LOGGEDIN until RPL_LOGGEDOUT).
+    var isLoggedIn = false
+
     public var monitor: Set<String> = [] {
         didSet {
             if self.connection.connected && self.serverInfo.supportsMonitor {
@@ -141,6 +144,7 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
         // Membership and account state is only valid for the session that observed it; keeping it across a
         // reconnect would attribute accounts to whoever holds those nicknames in the new session.
         self.channels = []
+        self.isLoggedIn = false
         IRCClientDisconnectionNotification().encode(payload:
             IRCClientConnectionNotification.IRCConnectionChange(client: self)
         ).post()
@@ -211,6 +215,12 @@ open class IRCClient: IRCConnectionDelegate, @unchecked Sendable {
 
             case .RPL_SASLSUCCESS, .ERR_SASLFAIL, .ERR_SASLTOOLONG, .ERR_SASLABORTED, .ERR_SASLALREADY:
                 handleAuthenticationCompleted(message: message)
+
+            case .RPL_LOGGEDIN:
+                self.isLoggedIn = true
+
+            case .RPL_LOGGEDOUT:
+                self.isLoggedIn = false
 
             case .JOIN:
                 handleJoinChannelEvent(message: message)
