@@ -114,11 +114,29 @@ extension IRCClient {
     static let minimumSplitBytes = 32
 
     /**
+     The number of UTF-8 bytes left for the trailing text of a line `:<source> <command> <target> :<text>\r\n`
+     within the 512 byte IRC line limit. Use it with `splitMessage` when a line reaches clients with a source
+     other than this client, such as a message the server relays on behalf of another user.
+
+     - Parameter source: The full source clients will see, `nick!user@host`
+     - Parameter command: The command clients will see, such as `PRIVMSG` or `NOTICE`
+     - Parameter target: The channel or nickname the line is addressed to
+     */
+    public static func messageByteBudget(source: String, command: String, target: String) -> Int {
+        let framingBytes = ":".utf8.count + " ".utf8.count + " ".utf8.count + " :".utf8.count + "\r\n".utf8.count
+        return IRCClient.maximumLineBytes
+            - (framingBytes + source.utf8.count + command.utf8.count + target.utf8.count)
+    }
+
+    /// The maximum length of an IRC line in bytes, including the trailing CR LF and excluding message tags.
+    static let maximumLineBytes = 512
+
+    /**
      Splits a message into chunks of at most `maxBytes` UTF-8 bytes. Splits prefer the last whitespace before the
      limit, then the last whole grapheme cluster, then (for a single cluster larger than the limit, such as heavy
      combining marks) the last whole unicode scalar. Every chunk is non-empty, so splitting always terminates.
      */
-    static func splitMessage(_ contents: String, maxBytes: Int) -> [String] {
+    public static func splitMessage(_ contents: String, maxBytes: Int) -> [String] {
         let maxBytes = max(maxBytes, IRCClient.minimumSplitBytes)
         var chunks: [String] = []
         var remaining = Substring(contents)

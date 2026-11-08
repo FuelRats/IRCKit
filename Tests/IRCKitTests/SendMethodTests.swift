@@ -120,6 +120,26 @@ final class MessageSplittingTests: XCTestCase {
         assertChunks(chunks, of: text, fitIn: 101)
     }
 
+    func testMessageByteBudgetFillsLineExactly() {
+        let source = "arckoor!arckoor@arckoor.rat.fuelrats.com"
+        let budget = IRCClient.messageByteBudget(source: source, command: "PRIVMSG", target: "#fuelrats")
+        XCTAssertEqual(budget, 449)
+        let text = String(repeating: "x", count: budget)
+        XCTAssertEqual(":\(source) PRIVMSG #fuelrats :\(text)\r\n".utf8.count, 512)
+    }
+
+    func testCyrillicSplitWithBudgetKeepsEveryLineValid() {
+        let source = "arckoor!arckoor@arckoor.rat.fuelrats.com"
+        let budget = IRCClient.messageByteBudget(source: source, command: "PRIVMSG", target: "#fuelrats")
+        let text = "Guser102: " + Array(repeating: "Щоб запросити когось до своєї команди", count: 12).joined(separator: " ")
+        let chunks = IRCClient.splitMessage(text, maxBytes: budget)
+        XCTAssertGreaterThan(chunks.count, 1)
+        assertChunks(chunks, of: text, fitIn: budget)
+        for chunk in chunks {
+            XCTAssertLessThanOrEqual(":\(source) PRIVMSG #fuelrats :\(chunk)\r\n".utf8.count, 512)
+        }
+    }
+
     func testSingleClusterLargerThanLimitSplitsOnScalarBoundaries() {
         // One grapheme cluster of ~481 bytes; previously this trapped on index(before: startIndex).
         let text = "e" + String(repeating: "\u{0301}", count: 240)
