@@ -131,7 +131,7 @@ final class MessageSplittingTests: XCTestCase {
     func testCyrillicSplitWithBudgetKeepsEveryLineValid() {
         let source = "arckoor!arckoor@arckoor.rat.fuelrats.com"
         let budget = IRCClient.messageByteBudget(source: source, command: "PRIVMSG", target: "#fuelrats")
-        let text = "Guser102: " + Array(repeating: "Щоб запросити когось до своєї команди", count: 12).joined(separator: " ")
+        let text = "Jameson: " + Array(repeating: "Щоб запросити когось до своєї команди", count: 12).joined(separator: " ")
         let chunks = IRCClient.splitMessage(text, maxBytes: budget)
         XCTAssertGreaterThan(chunks.count, 1)
         assertChunks(chunks, of: text, fitIn: budget)
